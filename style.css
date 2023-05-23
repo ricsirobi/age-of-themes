@@ -1,0 +1,68 @@
+
+body{
+    background-color: rgb(18, 163, 189);
+    color: white;
+}
+
+        #gameCanvas {
+            border: 1px solid black;
+        }
+        #controls {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+        }
+
+        @media only screen and (max-width: 600px) {
+        #controls {
+            position: fixed;
+            bottom: 10%;
+            right: 15%;
+        }
+    }
+    #info
+    {
+        font-size: larger;
+        font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+        position: fixed;
+        bottom:1.5%;
+        right: 10%;
+        color: black;
+        background-color: aqua  ;
+    }
+    #cooldowns
+    {
+        font-size: larger;
+        font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+        position: fixed;
+        right:5%;
+        top: 3%;
+        color: black;
+        background-color: aqua;
+    }
+    @media (max-width: 600px) {
+        #cooldowns {
+            right: 10px;
+        }
+    }
+    
+    button
+    {
+        background-color: aqua;
+        border: 2px solid #fff;
+        border-radius: 25px;
+        padding: 10px 20px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        color: #080505;
+        transition: all 0.3s ease-in-out;
+        cursor: pointer;
+        
+    }
+
+    .unitButtons
+    {
+        position: fixed;
+        bottom: 10%;
+        font-size: small;
+    }

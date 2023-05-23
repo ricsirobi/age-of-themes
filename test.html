@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        #gameCanvas {
+            border: 1px solid black;
+        }
+        #controls {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="1200" height="600"></canvas>
+    <div id="controls">
+        <button id="sendClubmanButton" disabled>Küldj Clubman Katonát (15 arany)</button>
+        <button id="sendDinoRiderButton" disabled>Küldj Dino Rider Katonát (100 arany)</button>
+        <button id="sendSoldierButton" disabled>Küldj Soldier Katonát (200 arany)</button>
+        <button id="sendTankButton" disabled>Küldj Tank Katonát (500 arany)</button>
+        <button id="buildSmallTowerButton" disabled>Kis Tower építése (200 arany)</button>
+        <button id="buildMediumTowerButton" disabled>Közepes Tower építése (300 arany)</button>
+        <button id="buildBigTowerButton" disabled>Nagy Tower építése (400 arany)</button>
+        <button id="upgradeTowerButton" disabled>Max Tower Fejlesztése (1000 arany)</button>
+        <button id="resetButton">Reset</button>
+        <p id="goldDisplay">Arany: 0</p>
+        <p id="maxDefenderTowersDisplay">Max Defender Towers: 1</p>
+        <p id="gameOverMessage" style="display: none;">Game Over</p>
+    </div>
+    <script>
+        var canvas = document.getElementById('gameCanvas');
+        var ctx = canvas.getContext('2d');
+
+        var sendClubmanButton = document.getElementById('sendClubmanButton');
+        var sendDinoRiderButton = document.getElementById('sendDinoRiderButton');
+        var sendSoldierButton = document.getElementById('sendSoldierButton');
+        var sendTankButton = document.getElementById('sendTankButton');
+        var upgradeTowerButton = document.getElementById('upgradeTowerButton');
+        var resetButton = document.getElementById('resetButton');
+        var goldDisplay = document.getElementById('goldDisplay');
+        var maxDefenderTowersDisplay = document.getElementById('maxDefenderTowersDisplay');
+        var gameOverMessage = document.getElementById('gameOverMessage');
+        var defenderTowerSpacing = 60; // spacing between defender towers
+
+        var gold = 0;
+        var enemyGold = 0;
+        var goldPerSecond = 0.1*100000;
+
+        var soldiers = [];
+        var enemies = [];
+        var bullets = [];
+        var maxDefenderTowers = 1;
+        var spawnCooldown = 0;
+        var enemySpawnCooldown = 0;
+        const maxDefenderTowerCount = 3;
+
+        var defenders = [];
+
+        var castle = {
+            x: 0,
+            y: 300,
+            hp: 1000,
+            width: 50,
+            height: 100,
+            color: 'blue',
+        };
+
+        var enemyCastle = {
+            x: 1150,
+            y: 300,
+            hp: 1000,
+            width: 50,
+            height: 100,
+            color: 'red',
+        };
+
+        sendClubmanButton.addEventListener('click', function() {
+            if (gold >= 15 && spawnCooldown <= 0) {
+                gold -= 15;
+                spawnCooldown = 2;
+                soldiers.push(createUnit(50, 'green', 0.5, 100, 15, 1.5));
+            }
+        });
+
+        sendDinoRiderButton.addEventListener('click', function() {
+            if (gold >= 100 && spawnCooldown <= 0) {
+                gold -= 100;
+                spawnCooldown = 2;
+                soldiers.push(createUnit(50, 'yellow', 1, 200, 100, 1));
+            }
+        });
+
+        sendSoldierButton.addEventListener('click', function() {
+            if (gold >= 200 && spawnCooldown <= 0) {
+                gold -= 200;
+                spawnCooldown = 2;
+                soldiers.push(createUnit(50, 'gray', 0.8, 300, 200, 1.2));
+            }
+        });
+
+        sendTankButton.addEventListener('click', function() {
+            if (gold >= 500 && spawnCooldown <= 0) {
+                gold -= 500;
+                spawnCooldown = 2;
+                soldiers.push(createUnit(50, 'brown', 0.3, 800, 500, 0.8));
+            }
+        });
+
+        
+        var buildSmallTowerButton = document.getElementById('buildSmallTowerButton');
+        var buildMediumTowerButton = document.getElementById('buildMediumTowerButton');
+        var buildBigTowerButton = document.getElementById('buildBigTowerButton');
+
+        buildSmallTowerButton.addEventListener('click', function() {
+            if (gold >= 200 && defenders.length < maxDefenderTowers) {
+                gold -= 200;
+                var towerYPosition = castle.y + castle.height / 2 + (defenders.length * defenderTowerSpacing);
+                defenders.push(createDefender(castle.x + castle.width + 20, towerYPosition, 30, 30, 200, 1, 100, 1));
+            }
+        });
+
+        buildMediumTowerButton.addEventListener('click', function() {
+            if (gold >= 300 && defenders.length < maxDefenderTowers) {
+                gold -= 300;
+                var towerYPosition = castle.y + castle.height / 2 + (defenders.length * defenderTowerSpacing);
+                defenders.push(createDefender(castle.x + castle.width + 20, towerYPosition, 40, 40, 300, 2, 200, 0.8));
+            }
+        });
+
+        buildBigTowerButton.addEventListener('click', function() {
+            if (gold >= 400 && defenders.length < maxDefenderTowers) {
+                gold -= 400;
+                var towerYPosition = castle.y + castle.height / 2 + (defenders.length * defenderTowerSpacing);
+                defenders.push(createDefender(castle.x + castle.width + 20, towerYPosition, 50, 50, 400, 3, 300, 0.6));
+            }
+        });
+
+        upgradeTowerButton.addEventListener('click', function() {
+            if (gold >= 1000*maxDefenderTowers && maxDefenderTowers < maxDefenderTowerCount) {
+                gold -= 1000*maxDefenderTowers;
+                maxDefenderTowers++;
+                maxDefenderTowersDisplay.innerText = 'Max Defender Towers: ' + maxDefenderTowers;
+                upgradeTowerButton.innerText = "Max Tower fejlesztése (" +1000*maxDefenderTowers+ " arany)";
+            }
+        });
+
+        resetButton.addEventListener('click', function() {
+            location.reload();
+        });
+
+        function createUnit(x, color, speed, hp, cost, attackspeed) {
+            return {
+                x: x,
+                y: 350,
+                width: 20,
+                height: 50,
+                color: color,
+                speed: speed,
+                hp: hp,
+                maxHp: hp,
+                range: 30,
+                damage: 10,
+                cost: cost,
+                attackCooldown: 0,
+                attackspeed: attackspeed
+            };
+        }
+
+        function createDefender(x, y, width, height, range, damage, attackSpeed) {
+            return {
+                x: x,
+                y: y,
+                width: width,
+                height: height,
+                range: range,
+                damage: damage,
+                attackSpeed: attackSpeed/10,
+                attackCooldown: 0,
+                target: null,
+            };
+        }
+
+        
+
+        function createBullet(x, y, target) {
+            return {
+                x: x,
+                y: y,
+                width: 10,
+                height: 5,
+                color: 'yellow',
+                target: target,
+            };
+        }
+
+        function drawUnit(unit) {
+            ctx.fillStyle = unit.color;
+            ctx.fillRect(unit.x, unit.y, unit.width, unit.height);
+
+            ctx.fillStyle = 'black';
+            ctx.fillRect(unit.x, unit.y - 10, unit.width, 5);
+
+            ctx.fillStyle = 'green';
+            var hpPercentage = unit.hp / unit.maxHp;
+            ctx.fillRect(unit.x, unit.y - 10, unit.width * hpPercentage, 5);
+        }
+
+        function drawCastle(castle) {
+            ctx.fillStyle = castle.color;
+            ctx.fillRect(castle.x, castle.y, castle.width, castle.height);
+
+            ctx.fillStyle = 'black';
+            ctx.fillRect(castle.x, castle.y - 10, castle.width, 5);
+
+            ctx.fillStyle = 'green';
+            ctx.fillRect(castle.x, castle.y - 10, castle.width * (castle.hp / 1000), 5);
+        }
+
+        function drawDefender(defender) {
+            ctx.fillStyle = 'gray';
+            ctx.fillRect(defender.x, defender.y, defender.width, defender.height);
+        }
+
+        function drawBullet(bullet) {
+            ctx.fillStyle = bullet.color;
+            ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+        }
+
+        function updateUnit(unit, enemies, castle) {
+            var nearestEnemy = enemies.reduce(function(nearest, enemy) {
+                var distance = Math.abs(unit.x - enemy.x);
+                if (distance < nearest.distance) {
+                    return { enemy: enemy, distance: distance };
+                } else {
+                    return nearest;
+                }
+            }, { enemy: null, distance: Infinity });
+
+            if (nearestEnemy.distance < unit.range) {
+                if (unit.attackCooldown <= 0) {
+                    nearestEnemy.enemy.hp -= unit.damage;
+                    unit.attackCooldown = unit.attackspeed;
+                    if (nearestEnemy.enemy.hp <= 0) {
+                        var enemyIndex = enemies.indexOf(nearestEnemy.enemy);
+                        enemies.splice(enemyIndex, 1);
+                        gold += Math.floor(nearestEnemy.enemy.cost * 0.33);
+                    }
+                } else {
+                    unit.attackCooldown -= 0.1;
+                }
+            } else if (Math.abs(unit.x - castle.x) < unit.range) {
+                castle.hp -= unit.damage;
+                if (castle.hp <= 0) {
+                    gameOverMessage.style.display = 'block';
+                }
+            } else {
+                unit.x += unit.speed;
+            }
+        }
+
+        function updateDefender(defender, enemies) {
+            if (defender.attackCooldown <= 0) {
+                var nearestEnemy = null;
+                var nearestDistance = Infinity;
+                for (var i = 0; i < enemies.length; i++) {
+                    var enemy = enemies[i];
+                    var distance = Math.abs(defender.x - enemy.x);
+                    if (distance < nearestDistance && distance <= defender.range) {
+                        nearestEnemy = enemy;
+                        nearestDistance = distance;
+                    }
+                }
+                if (nearestEnemy) {
+                    bullets.push(createBullet(defender.x + defender.width, defender.y + defender.height / 2, nearestEnemy));
+                    defender.attackCooldown = 60 / defender.attackSpeed;
+                }
+            } else {
+                defender.attackCooldown--;
+            }
+        }
+        
+        function updateBullet(bullet) {
+            var dx = bullet.target.x - bullet.x;
+            var dy = bullet.target.y - bullet.y;
+            var distance = Math.sqrt(dx * dx + dy * dy);
+            if (distance > 0) {
+                bullet.x += dx / distance * 3;
+                bullet.y += dy / distance * 3;
+            }
+            if (Math.abs(bullet.x - bullet.target.x) < 1 && Math.abs(bullet.y - bullet.target.y) < 1) {
+                bullet.target.hp -= 10;
+                if (bullet.target.hp <= 0) {
+                    var index = enemies.indexOf(bullet.target);
+                    if (index != -1) {
+                        enemies.splice(index, 1);
+                    }
+                }
+                var index = bullets.indexOf(bullet);
+                if (index != -1) {
+                    bullets.splice(index, 1);
+                }
+            }
+        }
+        function checkBulletCollision(bullet) {
+            for (var i = 0; i < enemies.length; i++) {
+                var enemy = enemies[i];
+                if (
+                    bullet.x < enemy.x + enemy.width &&
+                    bullet.x + bullet.width > enemy.x &&
+                    bullet.y < enemy.y + enemy.height &&
+                    bullet.y + bullet.height > enemy.y
+                ) {
+                    return enemy;
+                }
+            }
+            return null;
+        }
+
+        function gameLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            drawCastle(castle);
+            drawCastle(enemyCastle);
+
+            gold += goldPerSecond;
+            enemyGold += goldPerSecond;
+
+            if (gold >= 15) {
+                sendClubmanButton.disabled = false;
+            }
+            else
+            {
+                sendClubmanButton.disabled = true;
+            }
+
+            if (gold >= 100) {
+                sendDinoRiderButton.disabled = false;
+            }
+            else
+            {
+                sendDinoRiderButton.disabled = true;
+            }
+
+            if (gold >= 200) {
+                sendSoldierButton.disabled = false;
+            }
+            else
+            {
+                sendSoldierButton.disabled = true;
+            }
+
+            if (gold >= 500) {
+                sendTankButton.disabled = false;
+            }
+            else
+            {
+                sendTankButton.disabled = true;
+
+            }
+
+           // if (gold >= 300 && defenders.length < maxDefenderTowers) {
+           //     buildDefenderButton.disabled = false;
+            //}
+            if (gold >= 200 && defenders.length < maxDefenderTowers) {
+                buildSmallTowerButton.disabled = false;
+            }
+            else
+            {
+                buildSmallTowerButton.disabled = true;
+            }
+            if (gold >= 300 && defenders.length < maxDefenderTowers) {
+                buildMediumTowerButton.disabled = false;
+            }
+            else
+            {
+                buildMediumTowerButton.disabled=true;
+            }
+            if (gold >= 400 && defenders.length < maxDefenderTowers) {
+                buildBigTowerButton.disabled = false;
+            }
+            else
+            {
+                buildBigTowerButton.disabled = true;
+            }
+
+
+
+
+
+
+            if (gold >= 500 && maxDefenderTowers < maxDefenderTowerCount) {
+                upgradeTowerButton.disabled = false;
+            }
+
+            goldDisplay.innerText = 'Arany: ' + Math.floor(gold);
+
+            soldiers.forEach(function(soldier) {
+                drawUnit(soldier);
+                updateUnit(soldier, enemies, enemyCastle);
+            });
+
+            enemies.forEach(function(enemy) {
+                drawUnit(enemy);
+                updateUnit(enemy, soldiers, castle);
+            });
+
+            defenders.forEach(function(defender) {
+                drawDefender(defender);
+                updateDefender(defender, enemies, castle);
+            });
+
+            bullets.forEach(function(bullet) {
+                drawBullet(bullet);
+                updateBullet(bullet);
+            });
+
+            if (enemyGold >= 15 && Math.random() < 0.05 && enemySpawnCooldown <= 0) {
+                enemyGold -= 15;
+                enemySpawnCooldown = 2;
+                enemies.push(createUnit(1100, 'red', -0.5, 100, 15, 1));
+            }
+
+            if (enemyGold >= 100 && Math.random() < 0.01 && enemySpawnCooldown <= 0) {
+                enemyGold -= 100;
+                enemySpawnCooldown = 2;
+                enemies.push(createUnit(1100, 'purple', -1, 200, 100, 0.5));
+            }
+
+            if (spawnCooldown > 0) {
+                spawnCooldown -= 0.01;
+            }
+            if (enemySpawnCooldown > 0) {
+                enemySpawnCooldown -= 0.01;
+            }
+
+            if (castle.hp <= 0) {
+                goldPerSecond = 0;
+            }
+
+            if (gameOverMessage.style.display === 'block') {
+                enemySpawnCooldown = 0;
+                enemies.push(createUnit(1100, 'red', -0.5, 100, 15, 1));
+            }
+
+            ctx.fillStyle = 'black';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            soldiers.forEach(function(soldier) {
+                if (soldier.attackCooldown > 0) {
+                    ctx.fillText(Math.ceil(soldier.attackCooldown), soldier.x + soldier.width / 2, soldier.y - 20);
+                }
+            });
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        gameLoop();
+    </script>
+</body>
+</html>

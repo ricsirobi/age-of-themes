@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="style.css">
+    <script src="draw.js"> </script>
+    <script src="update.js"> </script>
+    <meta charset="utf8">
+</head>
+<body>
+    <canvas id="gameCanvas" width="1250" height="600">
+        
+    </canvas>
+    <div id="controls"> 
+        
+        <div id="age1unitButtons" class="unitButtons">
+            <p> <button id="sendClubmanButton" >Küldj Zombie Katonát (100 arany)</button> 
+
+              <button id="sendSlingerButton" >Küldj Zombie Archer Katonát (125 arany)</button> </p>
+              <p>
+                <button id="sendDinoRiderButton" >Küldj Gigant Zombie Katonát (400 arany)</button>
+                
+        <button id="" onclick="changeAge()">Fejlődés</button>
+    </p>
+
+                
+        </div>
+        <div id="age2unitButtons" style="display: none;" class="unitButtons">
+           <p> <button id="sendCreeperSapperButton">Küldj Creeper Sapper Katonát (500 arany)</button>
+            <button id="sendEnderKnightButton">Küldj Ender Knight Katonát (700 arany)</button> </p>
+            <p>
+
+           
+            <button id="sendIronGolemButton">Küldj Iron Golem Katonát (900 arany)</button>
+            
+        <button id="" onclick="changeAge()">Fejlődés</button> </p>
+        </div>
+
+        <div id="age3unitButtons" style="display: none;"class="unitButtons">
+          <p> <button id="sendMarioButton" >Küldj Mario Katonát (800 arany)</button>
+            <button id="sendYoshiButton" >Küldj Yoshi Katonát (1000 arany)</button></p>
+          <p>  <button id="sendDonkeyKongButton" >Küldj Donkey Kong Katonát (1200 arany)</button>
+            
+        <button id="" onclick="changeAge()">Fejlődés</button></p> 
+        </div>
+
+        <div id="age4unitButtons" style="display: none;"class="unitButtons">
+          <p>  <button id="sendJediKnightButton">Küldj Jedi Knight Katonát (1500 arany)</button>
+            <button id="sendStormtrooperButton">Küldj Stormtrooper Katonát (1800 arany)</button></p>
+          <p>  <button id="sendDarthVaderButton">Küldj Darth Vader Katonát (2000 arany)</button></p>
+            
+        </div>
+        
+        
+      <div id="towers1age" class="" style="margin-top: 3%;">
+        <button id="resetButton">Reset Game</button>
+        <button id="buildSmallTowerButton" hidden disabled>Kis Tower építése (200 arany)</button>
+        <button id="buildMediumTowerButton" hidden disabled>Közepes Tower építése (300 arany)</button>
+        <button id="buildBigTowerButton" >Nagy Tower építése (400 arany)</button>
+        <button id="upgradeTowerButton" >Max Tower Fejlesztése (1000 arany)</button>
+      </div>
+
+      
+    
+       
+       
+    </div>
+    <div id="info"> 
+        <p id="goldDisplay">Arany: 0</p> <p id=""> Experience: <span id="experienceDisplay"> 0 </span> </p>
+        <p id="queue"> Queue: <span id="queue1"></span> | <span id="queue2"></span> |<span id="queue3"></span> | <span id="queue4"></span> | <span id="queue5"></span> |</p>
+        <p id="maxDefenderTowersDisplay">Max Defender Towers: 1</p>
+        <p id="gameOverMessage" style="display: none;">Game Over</p>
+    </div>
+    <div id="cooldowns"> 
+        <h2> Töltések</h2>
+        <p > Meteor:<span id="meteorCooldownDisplay"> 10 </span>  </p>
+        <button id="meteorButton">Meteor zápor </button>
+    </div>
+
+
+    
+    <script src="display.js"> </script>
+    <script src="script.js"> </script>
+</body>
+</html>
