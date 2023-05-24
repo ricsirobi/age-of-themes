@@ -92,12 +92,50 @@ function drawDefender(defender) {
     ctx.drawImage(defenderImage, defender.x, defender.y, defender.width + 50, defender.height);
 }
 
-function drawBullet(bullet) {
+var arrowImage = new Image();
+    arrowImage.src = "img/arrow.png";
+
+function drawBullet(bullet,style=null,castle=null) {
+    if(!style && !castle)
+    {
     ctx.fillStyle = "green";
 
     ctx.beginPath();
     ctx.arc(bullet.x, bullet.y, bullet.width / 2, 0, Math.PI * 2, true); // Kirajzol egy kör alakú alakzatot
     ctx.fill(); // Kitölti a kör belsejét a beállított színnel
+    }
+    else
+    {
+        let img = Image();
+        switch (castle) {
+            case enemyCastle:
+                switch (style) {
+                    case "arrow":
+                        image = arrowImage;
+                        console.log("arrowot küldök castle enemy");
+                        break;
+                
+                    default:
+                        break;
+                }
+                break;
+        
+            default:
+                switch (style) {
+                    case "arrow":
+                        image= arrowImage;
+                        console.log("player");
+
+                        break;
+                
+                    default:
+                        break;
+                }
+                break;
+        }
+        ctx.drawImage(img, bullet.x, bullet.y, bullet.width + 50, bullet.height);
+    }
+
 }
 
 var meteorImage = new Image();

@@ -1,150 +1,186 @@
-function updateUnit(unit, targets, castle) {
-    // Frissíti az egységet a játék folyamán
-    var nearestEnemy = targets.reduce(function (nearest, enemy) {
-        // Megkeresi a legközelebbi ellenséget az egységhez képest
+function updateUnit(unit, allies, enemies, castle, gold, exp) {
+    // Update the unit during the game
+    var nearestEnemy = enemies.reduce(function (nearest, enemy) {
+        // Find the nearest enemy to the unit
         var distance = Math.abs(unit.x - enemy.x);
         if (distance < nearest.distance) {
             return { enemy: enemy, distance: distance };
         } else {
-            //console.log(nearest);
-            return nearest; 
+            return nearest;
         }
     }, { enemy: null, distance: Infinity });
 
     unit.target = nearestEnemy.enemy;
 
     if (nearestEnemy.distance < unit.range && unit.rangeDamage > 0 && unit.unitType === "ranged") {
-        
-        // Ha a legközelebbi ellenség a lőtávolságon belül van és az egység támadó képességgel rendelkezik (ranged típusú)
+        // If the nearest enemy is within shooting range and the unit has attacking capability (of type "ranged")
         if (unit.rangeAttackCooldown <= 0) {
-            // Ha a támadási cooldown lejárt
             nearestEnemy.enemy.hp -= unit.rangeDamage;
-            // Csökkenti az ellenség életerejét
             unit.rangeAttackCooldown = unit.rangeAttackspeed;
-            // Újra beállítja a támadási cooldown-t
             if (nearestEnemy.enemy.hp <= 0) {
-                // Ha az ellenségnek elfogyott az életereje
-                var enemyIndex = targets.indexOf(nearestEnemy.enemy);
-                targets.splice(enemyIndex, 1);
-                // Eltávolítja az ellenséget a célpontok közül
+                var enemyIndex = enemies.indexOf(nearestEnemy.enemy);
+                enemies.splice(enemyIndex, 1);
                 gold += Math.floor(nearestEnemy.enemy.cost * 1.33);
-                // Növeli az arany mennyiségét a legyőzött ellenség költségének egy részével
                 experience += Math.floor(nearestEnemy.enemy.cost * 1.4);
-                // Növeli az tapasztalat mennyiségét a legyőzött ellenség költségének egy részével
             }
         } else {
             unit.rangeAttackCooldown -= 0.1;
-            // Csökkenti a támadási cooldown-t
-        }
-        if(nearestEnemy.range < nearestEnemy.distance)
-        {
-            unit.x += unit.speed;
-            // Mozgatja az egységet a sebessége szerint
-
         }
     } else if (nearestEnemy.distance < unit.width) {
-        // Ha a legközelebbi ellenség a támadótávolságon belül van (melee támadás)
+        // If the nearest enemy is within attacking range (melee attack)
         if (unit.attackCooldown <= 0) {
-            // Ha a támadási cooldown lejárt
-            if (unit.unitType === "ranged") {
-                // Ha ranged típusú egységről van szó
-                nearestEnemy.enemy.hp -= unit.damage;
-                // Csökkenti az ellenség életerejét
-                unit.attackCooldown = unit.attackspeed;
-                // Újra beállítja a támadási cooldown-t
-                if (nearestEnemy.enemy.hp <= 0) {
-                    // Ha az ellenségnek elfogyott az életereje
-                    var enemyIndex = targets.indexOf(nearestEnemy.enemy);
-                    targets.splice(enemyIndex, 1);
-                    // Eltávolítja az ellenséget a célpontok közül
-                    gold += Math.floor(nearestEnemy.enemy.cost * 1.33);
-                    // Növeli az arany mennyiségét a legyőzött ellenség költségének egy részével
-                }
-            } else {
-                //támad a meele
-                // Ha melee típusú egységről van szó
-                nearestEnemy.enemy.hp -= unit.damage;
-                // Csökkenti az ellenség életerejét
-                unit.attackCooldown = unit.attackspeed;
-                // Újra beállítja a támadási cooldown-t
-                if (nearestEnemy.enemy.hp <= 0) {
-                    // Ha az ellenségnek elfogyott az életereje
-                    var enemyIndex = targets.indexOf(nearestEnemy.enemy);
-                    targets.splice(enemyIndex, 1);
-                    // Eltávolítja az ellenséget a célpontok közül
-                    gold += Math.floor(nearestEnemy.enemy.cost * 1.33);
-                    // Növeli az arany mennyiségét a legyőzött ellenség költségének egy részével
-                }
+            nearestEnemy.enemy.hp -= unit.damage;
+            unit.attackCooldown = unit.attackspeed;
+            if (nearestEnemy.enemy.hp <= 0) {
+                var enemyIndex = enemies.indexOf(nearestEnemy.enemy);
+                enemies.splice(enemyIndex, 1);
+                experience += Math.floor(nearestEnemy.enemy.cost*1.4);
+                
+                 console.log(nearestEnemy.enemy.cost*1.4+" xp");
+                gold += Math.floor(nearestEnemy.enemy.cost * 1.33);
             }
         } else {
             unit.attackCooldown -= 0.1;
-            // Csökkenti a támadási cooldown-t
         }
     } else if (Math.abs(unit.x - castle.x) < unit.range + unit.width / 3) {
-        // Ha a támadó a várhoz közel van (melee támadás)
+        // If the attacker is near the castle (melee attack)
         if (unit.attackCooldown <= 0) {
-            // Ha a támadási cooldown lejárt
             castle.hp -= unit.damage;
-            // Csökkenti a vár életerejét
             unit.attackCooldown = unit.attackspeed;
-            // Újra beállítja a támadási cooldown-t
             if (castle.hp <= 0) {
-                // Ha a vár életereje elfogyott
                 gameOverMessage.style.display = 'block';
-                // Megjeleníti a játék vége üzenetet
             }
         } else {
             unit.attackCooldown -= 0.1;
-            // Csökkenti a támadási cooldown-t
         }
     } else {
-        // Ha nincs közvetlenül előtte egység vagy támadható ellenség
-        var allies;
-        if (castle.color === "blue") {
-            allies = enemies;
-            // Az egység ellenséges egységekkel rendelkezik
-        } else {
-            allies = units;
-            // Az egység saját egységekkel rendelkezik
-        }
-
-        var unitIndex = allies.findIndex(function (otherUnit) {
-            return otherUnit === unit;
-        });
-        // Az egység indexe az egységek között
-
-        var distanceRequired = 0;
-        for (var i = 0; i < unitIndex; i++) {
-            distanceRequired += allies[i].width;
-        }
-        // Számolja az előtte lévő egységek összességes szélességét
-
-        var unitInFront = allies.find(function (otherUnit) {
-            return (
-                otherUnit !== unit &&
-                (otherUnit.attackCooldown > 0 || otherUnit.x >= unit.x) &&
-                Math.abs(unit.x - otherUnit.x) <= distanceRequired
-            );
-        });
-        //console.log(unit.name +" előtt áll " + unitInFront.length?unitInFront.length:0 + " barát ")
-        // Megkeresi az előtte lévő egységet
-
-        var canAttack = unitInFront && unitInFront.unitType === 'ranged' && nearestEnemy.distance <= unit.range;
-        // Megállapítja, hogy az előtte lévő egység támadható és támadó típusú-e, valamint van-e ellenség a lőtávolságon belül
-
-        if (!unitInFront && !canAttack) {
-            unit.x += unit.speed;
-            // Ha nincs előtte egység és nem tud támadni, mozgatja az egységet a sebessége szerint
-        }
-        else if(unitInFront && unitInFront.length) {
-            console.log("Az egység megállt mert " + unitInFront.length + "egység előtte van");
-        }
-        else if (canAttack) {
-            console.log("Az egység megállt mert támad, range-je: " + unit.range);
-        }
+        // If there's no unit or attackable enemy directly in front of it
+        let allyInFront = false;
+        if(castle===enemyCastle)
+        allyInFront = allies.find(ally => ally.x > unit.x && Math.abs(ally.x - unit.x) < unit.width);
+        else
+        allyInFront = allies.find(ally => ally.x < unit.x && Math.abs(ally.x - unit.x) < unit.width);
         
+        let enemyInFront = enemies.find(enemy => enemy.x > unit.x && Math.abs(enemy.x - unit.x) < unit.width);
+
+        // Check if there is room to move forward
+        if (!allyInFront && !enemyInFront) {
+            unit.x += unit.speed;
+        }
+    }
+    if(unit.unitType == "ranged" && nearestEnemy.enemy && nearestEnemy.distance < unit.range)
+    {
+        if(nearestEnemy.enemy.unitType != "ranged" && nearestEnemy.enemy.range < nearestEnemy.distance)
+        {//ranged sebzés
+            if (nearestEnemy.enemy.hp <= 0) {
+                // ellenség megölve
+                enemies.splice(0, 1);
+                gold += Math.floor(nearestEnemy.enemy.cost * 1.33);
+                experience += Math.floor(nearestEnemy.enemy.cost*1.4);
+                
+                 console.log(nearestEnemy.enemy.cost*1.4+" xp");
+            }
+            else
+            if (unit.attackCooldown <= 0) {
+            nearestEnemy.enemy.hp -= unit.rangeDamage;
+            unit.attackCooldown = unit.rangeAttackspeed;
+            bullets.push(createBullet(unit.x + unit.width-10, unit.y-50 + unit.height / 2, nearestEnemy.enemy, "arrow", castle));
+
+            }
+            else
+            {
+                unit.attackCooldown -= 0.1;
+            }
+
+        }
+        else
+        {
+            if (nearestEnemy.enemy.hp <= 0) {
+                // ellenség megölve
+                gold += Math.floor(nearestEnemy.enemy.cost * 1.33);
+                experience += Math.floor(nearestEnemy.enemy.cost*1.4);
+                
+                 console.log(nearestEnemy.enemy.cost*1.4+" xp");
+                enemies.splice(0, 1);
+                
+            }
+            else
+            if (unit.attackCooldown <= 0) {
+            nearestEnemy.enemy.hp -= unit.damage;
+            unit.attackCooldown = unit.attackspeed;
+
+            }
+            else
+            {
+                unit.attackCooldown -= 0.1;
+            }
+
+        }
+
+     if (Math.abs(unit.x - castle.x) < unit.range + unit.width / 3) 
+     {
+        if (unit.attackCooldown <= 0) {
+            castle -= unit.rangeDamage;
+            unit.attackCooldown = unit.attackspeed;
+            bullets.push(createBullet(unit.x + unit.width-10, unit.y-50 + unit.height / 2, nearestEnemy.enemy, "arrow", castle));
+            
+            }
+            else
+            {
+                unit.attackCooldown -= 0.1;
+            }
+    }
+
+
     }
 }
+
+
+
+
+function findNearestEnemy(unit, targets) {
+    var nearest = { enemy: null, distance: Infinity };
+    for (var i = 0; i < targets.length; i++) {
+        var enemy = targets[i];
+        var distance = Math.abs(unit.x - enemy.x);
+        if (distance < nearest.distance) {
+            nearest = { enemy: enemy, distance: distance };
+        }
+    }
+    return nearest;
+}
+
+function findNearestAlly(unit, units) {
+    var nearest = { ally: null, distance: Infinity };
+    for (var i = 0; i < units.length; i++) {
+        var ally = units[i];
+        if (ally !== unit) {
+            var distance = Math.abs(unit.x - ally.x);
+            if (distance < nearest.distance) {
+                nearest = { ally: ally, distance: distance };
+            }
+        }
+    }
+    return nearest;
+}
+
+function attackEnemy(unit, nearestEnemy, targets, gold, experience) {
+    if (nearestEnemy.enemy) {
+        nearestEnemy.enemy.hp -= (unit.rangeDamage || unit.damage);
+        unit.attackCooldown = unit.attackspeed;
+        if (nearestEnemy.enemy.hp <= 0) {
+            // ellenség megölve
+            var enemyIndex = targets.indexOf(nearestEnemy.enemy);
+            targets.splice(enemyIndex, 1);
+            gold += Math.floor(nearestEnemy.enemy.cost * 1.33);
+            experience += Math.floor(nearestEnemy.enemy.cost*1.4);
+                
+                 console.log(nearestEnemy.enemy.cost*1.4+" xp");
+        }
+    }
+    return gold;
+}
+
 
 
 

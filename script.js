@@ -10,8 +10,8 @@ var meteors = [];
 
 var gold = 100;
 var experience = 0;
-var enemyGold = 100;
-var goldPerSecond = 0.1 *100;
+var enemyGold = 350;
+var goldPerSecond = 0.1 ;
 var currentAge = 1;
 var enemyCurrentAge = 1;
 var meteorSpawnCooldown = 70;
@@ -33,8 +33,8 @@ const maxUnitQueueSize = 5;
 var castle = {
     x: 0,
     y: 300,
-    hp: 40000,
-    maxHP:40000,
+    hp: 4000,
+    maxHP:4000,
     width: 50,
     height: 100,
     color: 'blue',
@@ -43,8 +43,8 @@ var castle = {
 var enemyCastle = {
     x: 1150,
     y: 300,
-    hp: 40000,
-    maxHP:40000,
+    hp: 4000,
+    maxHP:4000,
     width: 50,
     height: 100,
     color: 'red',
@@ -61,7 +61,7 @@ var sendButtons = [
         damage: 46, 
         attackspeed: 30, 
         requiredAge: 1, 
-        queueTime: 500, 
+        queueTime: 200, 
         name: "Clubman",
         width: 50, 
         height: 50,
@@ -76,12 +76,12 @@ var sendButtons = [
         attackspeed: 20,
         attackCooldown: 0,
         requiredAge: 1,
-        range: 89,
+        range: 100,
         rangeDamage: 50,
         rangeAttackspeed: 10,
         rangeAttackCooldown: 0,
         unitType: "ranged",
-        queueTime: 800,
+        queueTime: 300,
         name: "Slinger",
         width: 50, 
         height: 50,
@@ -97,7 +97,7 @@ var sendButtons = [
         attackCooldown: 20,
         requiredAge: 1,
         name: "Dino Rider", 
-        queueTime: 1000,
+        queueTime: 600,
         unitType: "meele",
         width: 100, 
         height: 150,
@@ -114,7 +114,7 @@ var sendButtons = [
         requiredAge: 2,
         name: "Creeper Sapper", 
         unitType: "meele",
-        queueTime: 600,
+        queueTime: 200,
         width: 70, 
         height: 70,
     },
@@ -129,7 +129,7 @@ var sendButtons = [
         requiredAge: 2,
         name: "Ender Knight", 
         unitType: "meele",
-        queueTime: 700,
+        queueTime: 350,
         width: 80, 
         height: 80,
     },
@@ -144,7 +144,7 @@ var sendButtons = [
         requiredAge: 2,
         name: "Iron Golem", 
         unitType: "meele",
-        queueTime: 800,
+        queueTime: 600,
         width: 90, 
         height: 90,
     },
@@ -160,7 +160,7 @@ var sendButtons = [
         requiredAge: 3, 
         name: "Mario", 
         unitType: "meele",
-        queueTime: 1000,
+        queueTime: 200,
         width: 100, 
         height: 100,
     },
@@ -175,7 +175,7 @@ var sendButtons = [
         requiredAge: 3, 
         name: "Yoshi", 
         unitType: "meele",
-        queueTime: 1100,
+        queueTime: 350,
         width: 110, 
         height: 110,
     },
@@ -190,7 +190,7 @@ var sendButtons = [
         requiredAge: 3, 
         name: "Donkey Kong", 
         unitType: "meele",
-        queueTime: 1200,
+        queueTime: 750,
         width: 120, 
         height: 120,
     },
@@ -206,7 +206,7 @@ var sendButtons = [
         requiredAge: 4, 
         name: "Jedi Knight", 
         unitType: "meele",
-        queueTime: 1300,
+        queueTime: 200,
         width: 130, 
         height: 130,
     },
@@ -221,7 +221,7 @@ var sendButtons = [
         requiredAge: 4, 
         name: "Stormtrooper", 
         unitType: "meele",
-        queueTime: 1400,
+        queueTime: 620,
         width: 140, 
         height: 140,
     },
@@ -267,7 +267,21 @@ sendButtons.forEach(function (button) {
             console.log("Player queue-ba tette: " + button.name + "hp: " + button.hp + " damage: " + button.damage);
 
             unitQueue.push({
-                unit: createUnit(castle.x , button.name, button.color, button.speed, button.hp, button.damage, button.attackspeed, button.requiredAge, button.cost, button.rangeDamage, button.rangeAttackspeed, button.range, button.name, button.unitType, button.width, button.height),
+                unit: createUnit(castle.x , 
+                    button.name, 
+                    button.color, 
+                    button.speed,
+                     button.hp, 
+                     button.damage,
+                      button.attackspeed, 
+                      button.requiredAge, 
+                      button.cost, 
+                      button.rangeDamage, 
+                      button.rangeAttackspeed, 
+                      button.range, button.name, 
+                      button.unitType, 
+                      button.width, 
+                      button.height),
                 queueTime: button.queueTime
             });
         }
@@ -319,7 +333,7 @@ function changeAge() {
 }
 
 
-function createUnit(x, name, color, speed, hp, damage, attackspeed, requiredAge, cost, rangeDamage = 0, rangeAttackspeed = 0, range = 30, rangeAttackCooldown = 0, unitType = "ranged", width, height) {
+function createUnit(x, name, color, speed, hp, damage, attackspeed, requiredAge, cost, rangeDamage = 0, rangeAttackspeed = 0, range = 30, rangeAttackCooldown = 0, unitType = "meele", width, height) {
     if (requiredAge != currentAge) {
         console.log("This unit is not available in the current age.");
         //return;
@@ -364,7 +378,7 @@ function createDefender(x, y, width, height, range, damage, attackSpeed) {
     };
 }
 
-function createBullet(x, y, target) {
+function createBullet(x, y, target, style= null, castle = null ) {
     return {
         x: x,
         y: y,
@@ -372,6 +386,8 @@ function createBullet(x, y, target) {
         height: 5,
         color: 'yellow',
         target: target,
+        style: style || null,
+        castle: castle || null,
     };
 }
 
@@ -428,7 +444,7 @@ function refreshDisplay() {
 
 function findAffordableUnits() {
     // Create an array of affordable units
-    var affordableUnits = sendButtons.filter(unit => enemyGold >= unit.cost);
+    var affordableUnits = sendButtons.filter(unit => enemyGold >= unit.cost && unit.requiredAge==enemyCurrentAge);
 
     // If there are no affordable units, return null
     if (affordableUnits.length === 0) return null;
@@ -474,7 +490,6 @@ function checkMeteorCollision(meteor) {
 
 function gameLoop() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-
     drawSky();
     drawGrass();
     drawCastle(castle);
@@ -486,16 +501,16 @@ function gameLoop() {
     refreshDisplay();
 
     units.forEach(function (unit) {
-
         drawUnit(unit, 1);
-        updateUnit(unit, enemies, enemyCastle);
+        updateUnit(unit, units, enemies, enemyCastle, gold, experience);
     });
-
+    
     enemies.forEach(function (enemy) {
-
         drawUnit(enemy);
-        updateUnit(enemy, units, castle);
+        
+        updateUnit(enemy, enemies, units, castle, gold, experience);
     });
+    
 
     defenders.forEach(function (defender) {
         drawDefender(defender);
@@ -549,22 +564,41 @@ function gameLoop() {
 
     if (Math.random() < 0.01 && enemySpawnCooldown <= 0) {
         var affordableUnit = findAffordableUnits();
-        // Check if there is enough space for the new enemy unit
-        var enoughSpaceForNewUnit = (!enemies[0] || (enemies[0].x - enemies[enemies.length-1].width) > (affordableUnit.width + enemyCastle.width + 1));
-    
-        if (enoughSpaceForNewUnit && 
-            affordableUnit && 
-            affordableUnit.requiredAge == enemyCurrentAge && 
-            enemies.length < maxPopulation && 
-            1 < affordableUnit.width+enemyCastle.width) 
-            {
-            enemyGold -= affordableUnit.cost;
-            enemySpawnCooldown = 2;
-            console.log("Enemy spawn: " + affordableUnit.name + " hp: " + affordableUnit.hp + " damage: " + affordableUnit.damage);
-            enemies.push(createUnit(1100, affordableUnit.name, affordableUnit.color, -affordableUnit.speed, affordableUnit.hp, affordableUnit.damage, affordableUnit.attackspeed, affordableUnit.requiredAge, affordableUnit.cost, affordableUnit.rangeDamage, affordableUnit.rangeAttackspeed, affordableUnit.range, affordableUnit.rangeAttackCooldown, affordableUnit.unitType, affordableUnit.width, affordableUnit.height));
+        try {
+         
+        var enoughSpaceForNewUnit = (!enemies[0] || (enemies[enemies.length-1].x+enemies[enemies.length-1].width < 1050-affordableUnit.width));
+        
+        } catch (error) {
+           // console.log(affordableUnit);
+                  
         }
-    }
-    
+        if (affordableUnit&&enoughSpaceForNewUnit &&
+            affordableUnit &&
+            affordableUnit.requiredAge == enemyCurrentAge &&
+            enemies.length < maxPopulation &&
+            enoughSpaceForNewUnit)        {
+          enemyGold -= affordableUnit.cost;
+          enemySpawnCooldown = 2;
+          //console.log("Enemy spawn: " + affordableUnit.name + " hp: " + affordableUnit.hp + " damage: " + affordableUnit.damage);
+          enemies.push(createUnit(1050+enemies.length,
+             affordableUnit.name, 
+             affordableUnit.color,
+              affordableUnit.speed, 
+              affordableUnit.hp, 
+              affordableUnit.damage,
+               affordableUnit.attackspeed, 
+               affordableUnit.requiredAge,
+                affordableUnit.cost, 
+                affordableUnit.rangeDamage,
+                 affordableUnit.rangeAttackspeed, 
+                 affordableUnit.range, 
+                 affordableUnit.name,                
+                 affordableUnit.unitType, 
+                 affordableUnit.width, 
+                 affordableUnit.height));
+        }
+      }
+      
 
     if (Math.random() < 0.0001) {
         // Try to create a defender tower for the enemy if possible
@@ -620,6 +654,11 @@ function gameLoop() {
         enemyCurrentAge++;
     }
 
+    try {
+        //console.log(enemies[enemies.length-2].x - enemies[enemies.length-1].x);
+      } catch (error) {
+        
+      }
     updateButtonVisibility();
     
     requestAnimationFrame(gameLoop);
