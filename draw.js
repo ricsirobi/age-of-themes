@@ -22,6 +22,27 @@ unitImages["Ender Knight"].src = "img/enderman.png";
 unitImages["Iron Golem"] = new Image();
 unitImages["Iron Golem"].src = "img/irongolem.png";
 
+unitImages["Mario"] = new Image();
+unitImages["Mario"].src = "img/mario.png";
+
+unitImages["Yoshi"] = new Image();
+unitImages["Yoshi"].src = "img/yoshi.png";
+
+unitImages["Donkey Kong"] = new Image();
+unitImages["Donkey Kong"].src = "img/donkeykong.png";
+
+unitImages["Stormtrooper"] = new Image();
+unitImages["Stormtrooper"].src = "img/stormTrooper.png";
+
+unitImages["Darth Vader"] = new Image();
+unitImages["Darth Vader"].src = "img/darthvader.png";
+
+
+unitImages["Jedi Knight"] = new Image();
+unitImages["Jedi Knight"].src = "img/jedi.png";
+
+
+
 
 //eddig
 
@@ -29,7 +50,20 @@ function drawUnit(unit, friend = 0) {
     var plusSize = 10;
     if(unit.width > 100)
     plusSize = 20;
-
+    if(unit.name=="Player Unit" && !unit.image)
+    {
+        return;
+    }
+    if(unit.name=="Player Unit")
+    {
+        ctx.drawImage(unit.image, unit.x, unit.y - unit.height -50, unit.width + 35, unit.height + 80);
+            ctx.fillStyle = 'black';
+            ctx.fillRect(unit.x, unit.height + 100, unit.width+3, 5+3);
+            ctx.fillStyle = 'red';
+            var hpPercentage = unit.hp / unit.maxHp;
+            ctx.fillRect(unit.x, unit.height + 100, unit.width * hpPercentage, 5);
+            return;
+    }
 
 
     if (unitImages[unit.name]) {
@@ -69,11 +103,13 @@ function drawUnit(unit, friend = 0) {
 
 
 
-function drawCastle(castle) {
+function drawCastle(castle, age) {
     //ctx.fillStyle = castle.color;
     //ctx.fillRect(castle.x, castle.y, castle.width, castle.height);
     var castleImage = new Image();
-    castleImage.src = "img/house.png";  // itt adjuk meg a kép elérési útját
+    castleImage.src = "img/age"+age+"House.png";  
+   // console.log(castleImage.src);
+      // itt adjuk meg a kép elérési útját
 
     ctx.drawImage(castleImage, castle.x, castle.y - 25, castle.width + 50, castle.height);
 
@@ -84,12 +120,30 @@ function drawCastle(castle) {
     ctx.fillRect(castle.x + 20, castle.y - 40, castle.width * (castle.hp / castle.maxHP), 5);
 }
 
-function drawDefender(defender) {
+function drawDefender(defender, gotCastle=castle) {
     ctx.fillStyle = 'gray';
     var defenderImage = new Image();
     defenderImage.src = "img/plant.png";  // itt adjuk meg a kép elérési útját
 
-    ctx.drawImage(defenderImage, defender.x, defender.y, defender.width + 50, defender.height);
+    if(gotCastle != castle)
+    {
+       /* ctx.drawImage(defenderImage, defender.x, defender.y, defender.width + 50, defender.height);
+        ctx.scale(-1, 1); // Tükrözzük a képet az x tengely mentén
+        ctx.drawImage(defenderImage, 0, -defender.height * 2 - 50, defender.width + 35, defender.height + 80);
+*/
+        ctx.save();  // Mentjük az eredeti állapotot
+        ctx.translate(defender.x + defender.width, defender.y);  // Áthelyezzük a rajzolási origót a kép helyére
+        ctx.scale(-1, 1); // Tükrözzük a képet az x tengely mentén
+        ctx.drawImage(defenderImage, 0, -defender.height * 2 + 50, defender.width + 50, defender.height+ 30);  // A kép rajzolása az új origóból
+        ctx.restore();  // Visszaállítjuk az eredeti állapotot
+    }
+    else
+    {
+
+        ctx.drawImage(defenderImage, defender.x, defender.y, defender.width + 50, defender.height);
+    }
+
+    
 }
 
 var arrowImage = new Image();
@@ -133,7 +187,7 @@ function drawBullet(bullet,style=null,castle=null) {
                 }
                 break;
         }
-        ctx.drawImage(img, bullet.x, bullet.y, bullet.width + 50, bullet.height);
+        ctx.drawImage(img, bullet.x, bullet.y, bullet.width + 100, bullet.height+100);
     }
 
 }

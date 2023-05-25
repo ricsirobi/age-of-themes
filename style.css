@@ -2,10 +2,13 @@
 body{
     background-color: rgb(18, 163, 189);
     color: white;
+    background-repeat: none;
 }
 
         #gameCanvas {
             border: 1px solid black;
+            background-image: url("https://media.contentapi.ea.com/content/dam/eacom/pvz/pvz-bfn/common/pvz-bfn-section-bg-ns-landing-hero-rtue-xl.jpg.adapt.320w.jpg");
+
         }
         #controls {
             position: fixed;
@@ -13,11 +16,11 @@ body{
             left: 10px;
         }
 
-        @media only screen and (max-width: 600px) {
+        @media only screen and (max-width: 900px) {
         #controls {
             position: fixed;
             bottom: 10%;
-            right: 15%;
+            right: 50%;
         }
     }
     #info
@@ -28,7 +31,7 @@ body{
         bottom:1.5%;
         right: 10%;
         color: black;
-        background-color: aqua  ;
+        background-color: rgb(80, 255, 246)  ;
     }
     #cooldowns
     {
@@ -38,7 +41,7 @@ body{
         right:5%;
         top: 3%;
         color: black;
-        background-color: aqua;
+        background-color: transparent;
     }
     @media (max-width: 600px) {
         #cooldowns {
@@ -51,18 +54,66 @@ body{
         background-color: aqua;
         border: 2px solid #fff;
         border-radius: 25px;
-        padding: 10px 20px;
         text-transform: uppercase;
         letter-spacing: 2px;
         color: #080505;
+        font-weight: 1000;
         transition: all 0.3s ease-in-out;
         cursor: pointer;
         
     }
+    .textButton
+    {
+                padding: 10px 20px;
+
+    }
 
     .unitButtons
     {
+        display: flex;
         position: fixed;
         bottom: 10%;
         font-size: small;
+    }
+    
+    #goldDisplay
+    {
+        font-size: larger;
+    }
+    #experienceDisplay
+    {
+        font-size: larger;
+    }
+    #maxDefenderTowersDisplay
+    {
+        font-size: larger;
+    }
+    #checkMobileScreen{
+        width: 1000px;
+        height: 1000px;
+        display: none;
+        position: fixed;
+        background-color: #080505;
+        color: #fff;
+        font-display: inherit;
+        font-size: 150px;
+        top: 1%;
+        left: 1%;
+        
+    }
+
+    #drawingDiv
+    {   
+        display: flex;
+        position: fixed;
+        top: 0.1%;
+        left:35%;
+        width: 1275px;
+        height: 600px;
+        z-index: 10000000;
+    }
+    #drawingCanvas
+    {
+        width: 300px;
+        height: 400px;
     }

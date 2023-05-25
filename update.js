@@ -1,4 +1,4 @@
-function updateUnit(unit, allies, enemies, castle, gold, exp) {
+function updateUnit(unit, allies, enemies, castle, ggold, exp) {
     // Update the unit during the game
     var nearestEnemy = enemies.reduce(function (nearest, enemy) {
         // Find the nearest enemy to the unit
@@ -21,7 +21,9 @@ function updateUnit(unit, allies, enemies, castle, gold, exp) {
                 var enemyIndex = enemies.indexOf(nearestEnemy.enemy);
                 enemies.splice(enemyIndex, 1);
                 gold += Math.floor(nearestEnemy.enemy.cost * 1.33);
-                experience += Math.floor(nearestEnemy.enemy.cost * 1.4);
+                enemyGold += Math.floor(nearestEnemy.enemy.cost * 1.33);
+
+                experience += Math.floor(nearestEnemy.enemy.cost * 1.2);
             }
         } else {
             unit.rangeAttackCooldown -= 0.1;
@@ -34,9 +36,10 @@ function updateUnit(unit, allies, enemies, castle, gold, exp) {
             if (nearestEnemy.enemy.hp <= 0) {
                 var enemyIndex = enemies.indexOf(nearestEnemy.enemy);
                 enemies.splice(enemyIndex, 1);
-                experience += Math.floor(nearestEnemy.enemy.cost*1.4);
-                
-                 console.log(nearestEnemy.enemy.cost*1.4+" xp");
+                experience += Math.floor(nearestEnemy.enemy.cost*1.2);
+                enemyGold += Math.floor(nearestEnemy.enemy.cost * 1.33);
+
+                 console.log(nearestEnemy.enemy.cost*1.2+" xp");
                 gold += Math.floor(nearestEnemy.enemy.cost * 1.33);
             }
         } else {
@@ -76,16 +79,15 @@ function updateUnit(unit, allies, enemies, castle, gold, exp) {
                 // ellenség megölve
                 enemies.splice(0, 1);
                 gold += Math.floor(nearestEnemy.enemy.cost * 1.33);
-                experience += Math.floor(nearestEnemy.enemy.cost*1.4);
-                
+                experience += Math.floor(nearestEnemy.enemy.cost*1.2);
+                enemyGold += Math.floor(nearestEnemy.enemy.cost * 1.33);
                  console.log(nearestEnemy.enemy.cost*1.4+" xp");
             }
             else
             if (unit.attackCooldown <= 0) {
-            nearestEnemy.enemy.hp -= unit.rangeDamage;
+            nearestEnemy.enemy.hp -= unit.damage;
             unit.attackCooldown = unit.rangeAttackspeed;
-            bullets.push(createBullet(unit.x + unit.width-10, unit.y-50 + unit.height / 2, nearestEnemy.enemy, "arrow", castle));
-
+            console.log("ranged unit meele sebzést okoz");
             }
             else
             {
@@ -98,8 +100,9 @@ function updateUnit(unit, allies, enemies, castle, gold, exp) {
             if (nearestEnemy.enemy.hp <= 0) {
                 // ellenség megölve
                 gold += Math.floor(nearestEnemy.enemy.cost * 1.33);
-                experience += Math.floor(nearestEnemy.enemy.cost*1.4);
-                
+                experience += Math.floor(nearestEnemy.enemy.cost*1.2);
+                enemyGold += Math.floor(nearestEnemy.enemy.cost * 1.33);
+
                  console.log(nearestEnemy.enemy.cost*1.4+" xp");
                 enemies.splice(0, 1);
                 
@@ -108,7 +111,8 @@ function updateUnit(unit, allies, enemies, castle, gold, exp) {
             if (unit.attackCooldown <= 0) {
             nearestEnemy.enemy.hp -= unit.damage;
             unit.attackCooldown = unit.attackspeed;
-
+            bullets.push(createBullet(unit.x + unit.width-10, unit.y-50 + unit.height / 2, nearestEnemy.enemy, "arrow", castle));
+            console.log("kell bullet?");
             }
             else
             {
@@ -173,6 +177,8 @@ function attackEnemy(unit, nearestEnemy, targets, gold, experience) {
             var enemyIndex = targets.indexOf(nearestEnemy.enemy);
             targets.splice(enemyIndex, 1);
             gold += Math.floor(nearestEnemy.enemy.cost * 1.33);
+            enemyGold += Math.floor(nearestEnemy.enemy.cost * 1.33);
+
             experience += Math.floor(nearestEnemy.enemy.cost*1.4);
                 
                  console.log(nearestEnemy.enemy.cost*1.4+" xp");
@@ -200,7 +206,9 @@ function updateDefender(defender, enemies) {
         }
         if (nearestEnemy) {
             bullets.push(createBullet(defender.x + defender.width+10, defender.y-8 + defender.height / 2, nearestEnemy));
-            defender.attackCooldown = 60 / defender.attackSpeed;
+            console.log("Bulletet küld a defender");
+            // Ensure the attackSpeed is greater than 0 to avoid division by zero.
+            defender.attackCooldown = (defender.attackSpeed > 0) ? (60 / defender.attackSpeed) : 0;
         }
     } else {
         defender.attackCooldown--;
@@ -232,6 +240,7 @@ function updateBullet(bullet) {
             var index = bullets.indexOf(bullet);
             if (index != -1) {
                 bullets.splice(index, 1);
+                console.log("bullet megszűnik");
             }
         }
     } else {

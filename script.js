@@ -1,33 +1,44 @@
 var canvas = document.getElementById('gameCanvas');
 var ctx = canvas.getContext('2d');
 
+window.onload = function() {
+    if (window.innerWidth > 800) { // Vagy bármelyik érték, ami a "számítógépes" képernyő méretet jelenti
+        document.body.style.zoom = "150%";
+    }
+}
+
+
 var units = [];
 var enemies = [];
 var bullets = [];
 var defenders = [];
 var enemyDefenders = [];
 var meteors = [];
+var isPaused =false;
 
-var gold = 100;
+var gold = 70;
 var experience = 0;
-var enemyGold = 350;
+var enemyGold = 70;
 var goldPerSecond = 0.1 ;
 var currentAge = 1;
 var enemyCurrentAge = 1;
 var meteorSpawnCooldown = 70;
-const maxAge = 5;
+const maxAge = 4;
 
 var spawnCooldown = 0;
 var enemySpawnCooldown = 0;
 var maxDefenderTowers = 1;
-var enemyMaxDefenderTowers = 1;
+var enemyMaxDefenderTowers = 2;
 const maxDefenderTowerCount = 4;
 var defenderTowerSpacing = 60; // spacing between defender towers
+
+var sendDrawButton = document.getElementById("sendDrawButton");
 
 const maxPopulation = 10;
 
 var unitQueue = [];
 const maxUnitQueueSize = 5;
+var pauseButton = document.getElementById("pauseButton");
 
 
 var castle = {
@@ -91,7 +102,7 @@ var sendButtons = [
         cost: 400,
         color: 'yellow',
         speed: 0.5, 
-        hp: 600, 
+        hp: 400, 
         damage: 140,
         attackspeed: 40, 
         attackCooldown: 20,
@@ -100,7 +111,7 @@ var sendButtons = [
         queueTime: 600,
         unitType: "meele",
         width: 100, 
-        height: 150,
+        height: 130,
     },
     // Age 2 units
     {
@@ -115,8 +126,8 @@ var sendButtons = [
         name: "Creeper Sapper", 
         unitType: "meele",
         queueTime: 200,
-        width: 70, 
-        height: 70,
+        width: 50, 
+        height: 50,
     },
     {
         element: document.getElementById('sendEnderKnightButton'),
@@ -130,8 +141,8 @@ var sendButtons = [
         name: "Ender Knight", 
         unitType: "meele",
         queueTime: 350,
-        width: 80, 
-        height: 80,
+        width: 60, 
+        height: 60,
     },
     {
         element: document.getElementById('sendIronGolemButton'),
@@ -145,8 +156,8 @@ var sendButtons = [
         name: "Iron Golem", 
         unitType: "meele",
         queueTime: 600,
-        width: 90, 
-        height: 90,
+        width: 130, 
+        height: 130,
     },
     // Age 3 units
     {
@@ -161,8 +172,8 @@ var sendButtons = [
         name: "Mario", 
         unitType: "meele",
         queueTime: 200,
-        width: 100, 
-        height: 100,
+        width: 40, 
+        height: 40,
     },
     {
         element: document.getElementById('sendYoshiButton'), 
@@ -176,23 +187,23 @@ var sendButtons = [
         name: "Yoshi", 
         unitType: "meele",
         queueTime: 350,
-        width: 110, 
-        height: 110,
+        width: 50, 
+        height: 50,
     },
     {
         element: document.getElementById('sendDonkeyKongButton'), 
         cost: 500, 
         color: 'brown', 
         speed: 1.4, 
-        hp: 500, 
+        hp: 650, 
         damage: 150, 
         attackspeed: 10,
         requiredAge: 3, 
         name: "Donkey Kong", 
         unitType: "meele",
         queueTime: 750,
-        width: 120, 
-        height: 120,
+        width: 100, 
+        height: 100,
     },
     // Age 4 units
     {
@@ -202,35 +213,49 @@ var sendButtons = [
         speed: 1.6, 
         hp: 600, 
         damage: 180, 
-        attackspeed: 8,
+        attackspeed: 14,
         requiredAge: 4, 
         name: "Jedi Knight", 
         unitType: "meele",
         queueTime: 200,
-        width: 130, 
-        height: 130,
+        width: 70, 
+        height: 70,
     },
     {
         element: document.getElementById('sendStormtrooperButton'), 
         cost: 650, 
         color: 'white', 
         speed: 1.8, 
-        hp: 650, 
+        hp: 500, 
+        damage: 195, 
+        attackspeed: 17,
+        requiredAge: 4, 
+        name: "Stormtrooper", 
+        unitType: "ranged",
+        queueTime: 620,
+        width: 35, 
+        height: 35,
+    },
+    {
+        element: document.getElementById('sendDarthVaderButton'), 
+        cost: 650, 
+        color: 'white', 
+        speed: 1.8, 
+        hp: 1000, 
         damage: 195, 
         attackspeed: 7,
         requiredAge: 4, 
-        name: "Stormtrooper", 
+        name: "Darth Vader", 
         unitType: "meele",
         queueTime: 620,
-        width: 140, 
-        height: 140,
+        width: 100, 
+        height: 100,
     },
+
 ];
 
 var buildButtons = [
-    { element: document.getElementById('buildSmallTowerButton'), cost: 200, width: 30, height: 30, range: 200, damage: 1, attackSpeed: 10, requiredAge: 1 },
-    { element: document.getElementById('buildMediumTowerButton'), cost: 300, width: 40, height: 40, range: 300, damage: 2, attackSpeed: 8, requiredAge: 1 },
-    { element: document.getElementById('buildBigTowerButton'), cost: 400, width: 50, height: 50, range: 400, damage: 400, attackSpeed: 100, requiredAge: 1 }
+    { element: document.getElementById('buildBigTowerButton'), cost: 400, width: 50, height: 50, range: 300, damage: 500, attackSpeed: 10, requiredAge: 1 }
 ];
 
 var ages = [
@@ -242,6 +267,7 @@ var ages = [
 
 
 var upgradeTowerButton = document.getElementById('upgradeTowerButton');
+var upgradeTowerPriceDisplay = document.getElementById("upgradeTowerPrice");
 var resetButton = document.getElementById('resetButton');
 var goldDisplay = document.getElementById('goldDisplay');
 var meteorCooldownDisplay = document.getElementById('meteorCooldownDisplay');
@@ -265,7 +291,7 @@ sendButtons.forEach(function (button) {
         if (gold >= button.cost && unitQueue.length < maxUnitQueueSize ) {
             gold -= button.cost;
             console.log("Player queue-ba tette: " + button.name + "hp: " + button.hp + " damage: " + button.damage);
-
+            var modifiedRangedAttackSpeed = button.rangeAttackspeed?button.rangeAttackspeed-1:0;
             unitQueue.push({
                 unit: createUnit(castle.x , 
                     button.name, 
@@ -273,7 +299,7 @@ sendButtons.forEach(function (button) {
                     button.speed,
                      button.hp, 
                      button.damage,
-                      button.attackspeed, 
+                      button.attackspeed-2, 
                       button.requiredAge, 
                       button.cost, 
                       button.rangeDamage, 
@@ -281,7 +307,8 @@ sendButtons.forEach(function (button) {
                       button.range, button.name, 
                       button.unitType, 
                       button.width, 
-                      button.height),
+                      button.height,
+                      ),
                 queueTime: button.queueTime
             });
         }
@@ -296,7 +323,7 @@ buildButtons.forEach(function (button) {
         if (gold >= button.cost && defenders.length < maxDefenderTowers) {
             gold -= button.cost;
             var towerYPosition = castle.y + castle.height / 2 + (defenders.length * defenderTowerSpacing);
-            defenders.push(createDefender(castle.x + castle.width + 20, towerYPosition, button.width, button.height, button.range, button.damage, button.attackSpeed));
+            defenders.push(createDefender(castle.x + castle.width + 20, towerYPosition, button.width, button.height, button.range, button.damage, button.attackSpeed,castle));
         }
     });
 });
@@ -306,7 +333,7 @@ upgradeTowerButton.addEventListener('click', function () {
         gold -= 1000 * maxDefenderTowers;
         maxDefenderTowers++;
         maxDefenderTowersDisplay.innerText = 'Max Defender Towers: ' + maxDefenderTowers;
-        upgradeTowerButton.innerText = "Max Tower fejlesztése (" + 1000 * maxDefenderTowers + " arany)";
+        upgradeTowerPriceDisplay.innerText =  1000 * maxDefenderTowers;
     }
     else {
         upgradeTowerButton.disabled = false;
@@ -318,7 +345,7 @@ resetButton.addEventListener('click', function () {
 });
 
 function changeAge() {
-    if(currentAge < maxAge && experience>= ages[currentAge].requiredExperience)
+    if(currentAge <= maxAge && experience>= ages[currentAge].requiredExperience)
     {  
         currentAge++;
         castle.maxHP *=4;
@@ -330,6 +357,163 @@ function changeAge() {
         console.log("Advanced to age " + currentAge);
     }
     return;
+}
+
+
+
+sendDrawButton.addEventListener("click",openDraw);
+var drawingDiv = document.getElementById("drawingDiv");
+
+function openDraw()
+{
+    pauseGame();
+    var drawingCanvas = document.createElement('canvas');
+    var computedStyle = window.getComputedStyle(drawingCanvas);
+drawingCanvas.width = parseInt(computedStyle.getPropertyValue('width'), 10);
+drawingCanvas.height = parseInt(computedStyle.getPropertyValue('height'), 10);
+
+    drawingCanvas.color = "white";
+    drawingDiv.style.display = "block";
+    drawingCanvas.id = "drawingCanvas";
+    drawingCanvas.style.backgroundColor = "white";
+    drawingCanvas.width = window.innerWidth;
+    drawingCanvas.height = window.innerHeight;
+    drawingDiv.appendChild(drawingCanvas);
+
+    var ctx = drawingCanvas.getContext('2d');
+    var drawing = false;
+    
+    drawingCanvas.addEventListener('mousedown', function(e) {
+        drawing = true;
+        ctx.beginPath();
+    });
+    
+    drawingCanvas.addEventListener('mouseup', function() {
+        drawing = false;
+    });
+
+    drawingCanvas.addEventListener('mousemove', function(e) {
+        if (drawing === false) return;
+        ctx.lineWidth = 10;
+        ctx.lineCap = 'round';
+        
+        ctx.strokeStyle = colorPicker.value;
+    
+        // Get the bounding rectangle of the canvas
+        var rect = drawingCanvas.getBoundingClientRect();
+    
+        // Calculate the zoom level
+        var zoomLevel = window.devicePixelRatio;
+    
+        // Calculate the mouse position relative to the canvas, taking into account the zoom level
+        var x = (e.clientX - rect.left) / zoomLevel;
+        var y = (e.clientY - rect.top) / zoomLevel;
+        
+        ctx.lineTo(x, y);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+    });
+    var colorPicker = document.createElement("input");
+    colorPicker.type="color";
+    var saveButton = document.createElement('button');
+    saveButton.textContent = 'Mentés';
+    
+    drawingDiv.appendChild(colorPicker);
+    drawingDiv.appendChild(saveButton);
+    
+    saveButton.addEventListener('click', function() {
+        var dataUrl = drawingCanvas.toDataURL('image/png');
+        
+        var playerUnitImage = new Image();
+        playerUnitImage.src = dataUrl;
+        
+        units[units.length] =  playerUnit = createUnit(0, "Player Unit", "blue", 100, calculateArea(drawingCanvas)/1000, 10, 1, currentAge ,0, 0, 0, 0, 0, "melee", 75, 75);
+
+        units[units.length-1].image = playerUnitImage;
+        
+        drawingDiv.removeChild(colorPicker);
+        drawingDiv.removeChild(drawingCanvas);
+        drawingDiv.removeChild(saveButton);
+        drawingDiv.style.display = "none";
+        resumeGame();
+    });
+}
+
+function calculateArea(canvas) {
+    let context = canvas.getContext('2d');
+    let pointsInside = 0;
+    let totalPoints = 10000; // A pontos szám attól függ, milyen pontosságra van szükség
+    let points = [];
+    let backgroundColor = [0, 0, 0, 0]; // Feltételezzük, hogy a háttér fehér. Állítsd be a tényleges háttérszínre.
+    
+    for (let i = 0; i < totalPoints; i++) {
+      let x = Math.floor(Math.random() * canvas.width);
+      let y = Math.floor(Math.random() * canvas.height);
+        
+      points.push({x: x, y: y});
+    
+      let pixelData;
+      try {
+        pixelData = context.getImageData(x, y, 1, 1).data;
+      } catch (err) {
+        console.error("Hiba történt a pixel adatok lekérdezésekor: ", err);
+        continue;
+      }
+      
+      if (pixelData[0] !== backgroundColor[0] || pixelData[1] !== backgroundColor[1] ||
+          pixelData[2] !== backgroundColor[2] || pixelData[3] !== backgroundColor[3]) {
+        pointsInside++;
+      }
+    }
+    
+    let areaRatio = pointsInside / totalPoints;
+    let totalArea = canvas.width * canvas.height;
+    let estimatedArea = totalArea * areaRatio;
+    points = [];
+    console.log("Canvas teljes területe: " + totalArea);
+    console.log('Becsült terület: ' + estimatedArea + ' px^2');
+    return estimatedArea;
+  }
+  
+  
+
+
+
+
+function isMobileDevice() {
+    return (typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1);
+}
+
+if (isMobileDevice()) {
+    window.addEventListener("orientationchange", function() {
+        if (window.orientation === 0 || window.orientation === 180) {
+            document.getElementById("checkMobileScreen").style.display="block";
+            return;
+        } else if (window.orientation === 90 || window.orientation === -90) {
+            // Landscape módban vagyunk
+            // Itt végrehajthatod az elforgatásra vonatkozó műveleteket
+            document.getElementById("checkMobileScreen").style.display="none";
+        }
+    });
+} else {
+    // Az eszköz nem mobiltelefon vagy táblagép
+}
+
+
+ 
+function checkMobileScreen()
+{
+   
+    if (window.orientation === 0 || window.orientation === 180) {
+        document.getElementById("checkMobileScreen").style.display="block";
+        return;
+    } else if (window.orientation === 90 || window.orientation === -90) {
+        // Landscape módban vagyunk
+        // Itt végrehajthatod az elforgatásra vonatkozó műveleteket
+        document.getElementById("checkMobileScreen").style.display="none";
+    }
+
 }
 
 
@@ -349,7 +533,7 @@ function createUnit(x, name, color, speed, hp, damage, attackspeed, requiredAge,
         maxHp: hp,
         range: range || 30,
         damage: damage,
-        attackCooldown: 0,
+        attackCooldown: rangeAttackspeed || attackspeed,
         attackspeed: attackspeed,
         requiredAge: requiredAge,
         cost: cost,
@@ -360,11 +544,12 @@ function createUnit(x, name, color, speed, hp, damage, attackspeed, requiredAge,
         name: name,
         target: null,
         inMeele: false,
+        image: null,
 
     };
 }
 
-function createDefender(x, y, width, height, range, damage, attackSpeed) {
+function createDefender(x, y, width, height, range, damage, attackSpeed, castle=castle) {
     return {
         x: x,
         y: y,
@@ -375,6 +560,7 @@ function createDefender(x, y, width, height, range, damage, attackSpeed) {
         attackSpeed: attackSpeed / 10,
         attackCooldown: 0,
         target: null,
+        castle: castle,
     };
 }
 
@@ -436,10 +622,16 @@ function updateButtonVisibility() {
 
 
 function refreshDisplay() {
-    goldDisplay.innerText = 'Gold: ' + Math.round(gold);
+    if(currentAge == maxAge)
+    {
+        experienceDisplay.innerText =  experience + " / " + "-";
+
+        return;
+    }
+    goldDisplay.innerText =  Math.round(gold);
     var xp = ages[currentAge].requiredExperience?ages[currentAge].requiredExperience:"-";
     experienceDisplay.innerText =  experience + " / " + xp;
-    maxDefenderTowersDisplay.innerText = 'Max Defender Towers: ' + maxDefenderTowers;
+    maxDefenderTowersDisplay.innerText =   defenders.length +"/" + maxDefenderTowers ;
 }
 
 function findAffordableUnits() {
@@ -485,15 +677,35 @@ function checkMeteorCollision(meteor) {
     return null;
 }
 
+function pauseGame() {
+    isPaused = true;
+    pauseButton.innerHTML = '<img src="img/resumeButton.png" width="30" height="auto" alt="buttonpng" border="0" style="margin-top: 3px;"/>';
+    pauseButton.removeEventListener("click",pauseGame);
+    pauseButton.addEventListener("click", resumeGame);
+    
+}
+
+function resumeGame() {
+    isPaused = false;
+    requestAnimationFrame(gameLoop);
+    pauseButton.innerHTML = '<img src="img/pauseButton.png" width="30" height="auto" alt="buttonpng" border="0" style="margin-top: 3px;"/>';
+    pauseButton.removeEventListener("click",resumeGame);
+    pauseButton.addEventListener("click", pauseGame);
+    
+}
 
 
 
 function gameLoop() {
+    if(!isPaused)
+    {
+        
+    
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawSky();
     drawGrass();
-    drawCastle(castle);
-    drawCastle(enemyCastle);
+    drawCastle(castle,currentAge);
+    drawCastle(enemyCastle,enemyCurrentAge);
 
     gold += goldPerSecond;
     enemyGold += goldPerSecond;
@@ -513,8 +725,13 @@ function gameLoop() {
     
 
     defenders.forEach(function (defender) {
-        drawDefender(defender);
+        drawDefender(defender, castle);
         updateDefender(defender, enemies, castle);
+    });
+
+    enemyDefenders.forEach(function (enemyDefender) {
+        drawDefender(enemyDefender, enemyCastle);
+        updateDefender(enemyDefender, units, enemyCastle);
     });
 
     bullets.forEach(function (bullet) {
@@ -603,10 +820,10 @@ function gameLoop() {
     if (Math.random() < 0.0001) {
         // Try to create a defender tower for the enemy if possible
         var affordableTower = findAffordableTowers(); // You need to implement this function
-        if (affordableTower && enemyGold >= affordableTower.cost && defenders.length < maxDefenderTowers) {
+        if (affordableTower && enemyGold >= affordableTower.cost && enemyDefenders.length < enemyMaxDefenderTowers) {
             enemyGold -= affordableTower.cost;
             var towerYPosition = enemyCastle.y + enemyCastle.height / 2 + (defenders.filter(d => d.isEnemy).length * defenderTowerSpacing);
-            defenders.push(createDefender(enemyCastle.x - 20, towerYPosition, affordableTower.width, affordableTower.height, affordableTower.range, affordableTower.damage, affordableTower.attackSpeed, true)); // Assuming the last parameter indicates whether the tower is for the enemy
+            enemyDefenders.push(createDefender(enemyCastle.x - 20, towerYPosition, affordableTower.width, affordableTower.height, affordableTower.range, affordableTower.damage, affordableTower.attackSpeed, enemyCastle)); // Assuming the last parameter indicates whether the tower is for the enemy
         }
     }
 
@@ -642,7 +859,7 @@ function gameLoop() {
         }
     });
 
-    if(experience > ages[enemyCurrentAge].requiredExperience && enemyCurrentAge < maxAge)
+    if(enemyCurrentAge < maxAge && experience > ages[enemyCurrentAge].requiredExperience)
     {
         console.log("Enemy level up to "+ ages[enemyCurrentAge].name);
         enemyCastle.maxHP*=4;
@@ -662,6 +879,13 @@ function gameLoop() {
     updateButtonVisibility();
     
     requestAnimationFrame(gameLoop);
+    }
+    else
+    {
+        return;
+    }
 }
-
+if (isMobileDevice()) {
+checkMobileScreen();
+}
 gameLoop();
