@@ -43,7 +43,73 @@ unitImages["Jedi Knight"].src = "img/jedi.png";
 
 
 
+function drawHp(unit)
+{
+    ctx.fillStyle = 'black';
+    ctx.fillRect(unit.x, unit.y - 120, unit.width + 3, 5 + 3);
+    ctx.fillStyle = (unit==units[0]) ? 'green' : 'red';
+    var hpPercentage = unit.hp / unit.maxHp;
+    ctx.fillRect(unit.x, unit.y -120, unit.width * hpPercentage, 5);
+}
 
+function drawSprite(unit, type="fight") {
+    var frameWidth;
+    var frameHeight;
+    var totalFrames;
+    var spriteSheet;
+    var shouldFlip = false;
+    
+ /*   if(!unit.fightSpriteHeight || ! unit.fightSpriteWidth || !unit.attackImage || !unit.image || !unit.fightFrameCount || !unit.walkFrameCount || unit.currentFrame>unit.walkFrameCount)
+    {
+        unit.fightSpriteHeight = unit.attackImage.height;  
+        unit.fightSpriteWidth = unit.attackImage.width; 
+        unit.attackImage = unit.image;
+        //unit.image ;
+        unit.fightFrameCount = 1;
+        unit.walkFrameCount = 1;
+    }*/
+    switch (type) {
+        case "fight":
+            frameWidth = unit.fightSpriteWidth;
+            frameHeight = unit.fightSpriteHeight;
+            totalFrames = unit.fightFrameCount;
+            spriteSheet = unit.attackImage;
+            if(unit==units[0]) {
+                shouldFlip = true;
+            }
+            break;
+        case "walk":
+            frameWidth = unit.walkSpriteWidth;
+            frameHeight = unit.walkSpriteHeight;
+            totalFrames = unit.walkFrameCount;
+            spriteSheet = unit.image;
+            if(units.includes(unit))
+            shouldFlip = true;
+            break;
+        default:
+            
+            break;
+    }
+
+    var currentFrame = unit.currentFrame % 4 == 0 ? unit.currentFrame : unit.currentFrame - unit.currentFrame % 4;
+
+    ctx.save(); // save the current state of the context
+
+    if (shouldFlip) {
+        ctx.scale(-1, 1); // flip context horizontally
+        ctx.translate(-2 * unit.x - unit.width - 50, 0); // shift context back to its original position
+    }
+
+    ctx.drawImage(
+        spriteSheet,
+        currentFrame * frameWidth, 0,
+        frameWidth, frameHeight,
+        unit.x, unit.y-120,
+        unit.width+50, unit.height+100
+    );
+
+    ctx.restore();
+    }
 //eddig
 
 function drawUnit(unit, friend = 0) {
@@ -65,31 +131,27 @@ function drawUnit(unit, friend = 0) {
             return;
     }
 
-
-    if (unitImages[unit.name]) {
+    if (unit.isFighting && unit.name == "Clubman") {
+        drawHp(unit);
+        drawSprite(unit,"fight");
+    }
+    else if (unitImages[unit.name]) {
         // Kép kirajzolása
         ctx.save();
         if (friend == 1) {
             
-            ctx.fillStyle = 'black';
-            ctx.fillRect(unit.x, unit.height + 100, unit.width+3, 5+3);
-            ctx.translate(unit.x + unit.width, unit.y + unit.height);
-            ctx.scale(-1, 1); // Tükrözzük a képet az x tengely mentén
-            ctx.drawImage(unitImages[unit.name], 0, -unit.height * 2 - 50, unit.width + 35, unit.height + 80);
-
-            ctx.restore();
-            ctx.fillStyle = 'green';
-            var hpPercentage = unit.hp / unit.maxHp;
-            ctx.fillRect(unit.x, unit.height + 100, unit.width * hpPercentage, 5);
+            drawSprite(unit,"walk");
+            
             
         } else {
+            drawSprite(unit,"walk"); 
             
-            ctx.drawImage(unitImages[unit.name], unit.x, unit.y - unit.height -50, unit.width + 35, unit.height + 80);
-            ctx.fillStyle = 'black';
-            ctx.fillRect(unit.x, unit.height + 100, unit.width+3, 5+3);
-            ctx.fillStyle = 'red';
-            var hpPercentage = unit.hp / unit.maxHp;
-            ctx.fillRect(unit.x, unit.height + 100, unit.width * hpPercentage, 5);
+           // ctx.drawImage(unitImages[unit.name], unit.x, unit.y - unit.height -50, unit.width + 35, unit.height + 80);
+          //  ctx.fillStyle = 'black';
+           // ctx.fillRect(unit.x, unit.height + 100, unit.width+3, 5+3);
+          //  ctx.fillStyle = 'red';
+          //  var hpPercentage = unit.hp / unit.maxHp;
+          //  ctx.fillRect(unit.x, unit.height + 100, unit.width * hpPercentage, 5);
             
         }
         ctx.restore();
@@ -120,31 +182,45 @@ function drawCastle(castle, age) {
     ctx.fillRect(castle.x + 20, castle.y - 40, castle.width * (castle.hp / castle.maxHP), 5);
 }
 
-function drawDefender(defender, gotCastle=castle) {
-    ctx.fillStyle = 'gray';
-    var defenderImage = new Image();
-    defenderImage.src = "img/plant.png";  // itt adjuk meg a kép elérési útját
+function drawDefender(defender, gotCastle = castle) {
+    var spriteSheet = new Image();
+spriteSheet.src = "img/allie-plant-attack-sprite.png";
+var frameWidth = 644; // A képkockák szélessége
+var frameHeight = 616; // A képkockák magassága
+var totalFrames = 60; // A képkockák száma
 
-    if(gotCastle != castle)
-    {
-       /* ctx.drawImage(defenderImage, defender.x, defender.y, defender.width + 50, defender.height);
-        ctx.scale(-1, 1); // Tükrözzük a képet az x tengely mentén
-        ctx.drawImage(defenderImage, 0, -defender.height * 2 - 50, defender.width + 35, defender.height + 80);
-*/
-        ctx.save();  // Mentjük az eredeti állapotot
-        ctx.translate(defender.x + defender.width, defender.y);  // Áthelyezzük a rajzolási origót a kép helyére
-        ctx.scale(-1, 1); // Tükrözzük a képet az x tengely mentén
-        ctx.drawImage(defenderImage, 0, -defender.height * 2 + 50, defender.width + 50, defender.height+ 30);  // A kép rajzolása az új origóból
-        ctx.restore();  // Visszaállítjuk az eredeti állapotot
+var currentFrame = defender.currentFrame;
+
+    if (defender.isFighting && gotCastle == castle) {
+        ctx.drawImage(
+            spriteSheet,
+            currentFrame * frameWidth, 0, // A képkocka kezdőpontja a sprite sheet-en
+            frameWidth, frameHeight, // A képkocka mérete
+            defender.x, defender.y, 
+            defender.width + 50, defender.height
+        );
+        // Növeljük a képkocka indexét
+        currentFrame = (currentFrame + 1) % totalFrames;
+    
     }
     else
     {
+    ctx.fillStyle = 'gray';
+    var defenderImage = new Image();
+    defenderImage.src = "img/plant.png";
 
+    if (gotCastle != castle) {
+        ctx.save();  // Mentjük az eredeti állapotot
+        ctx.translate(defender.x + defender.width / 2, defender.y + defender.height / 2);  // Áthelyezzük a rajzolási origót a kép közepére
+        ctx.scale(-1, 1); // Tükrözzük a képet az x tengely mentén
+        ctx.drawImage(defenderImage, -defender.width / 2, -defender.height / 2, defender.width + 50, defender.height + 30);  // A kép rajzolása az új origóból
+        ctx.restore();  // Visszaállítjuk az eredeti állapotot
+    } else {
         ctx.drawImage(defenderImage, defender.x, defender.y, defender.width + 50, defender.height);
     }
-
-    
 }
+}
+
 
 var arrowImage = new Image();
     arrowImage.src = "img/arrow.png";

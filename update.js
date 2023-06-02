@@ -38,11 +38,21 @@ function updateUnit(unit, allies, enemies, castle, ggold, exp) {
                 enemies.splice(enemyIndex, 1);
                 experience += Math.floor(nearestEnemy.enemy.cost*1.2);
                 enemyGold += Math.floor(nearestEnemy.enemy.cost * 1.33);
-
+                unit.isFighting = false;
+                unit.currentFrame = 0;
                  console.log(nearestEnemy.enemy.cost*1.2+" xp");
                 gold += Math.floor(nearestEnemy.enemy.cost * 1.33);
             }
         } else {
+            unit.isFighting = true;
+            if(unit.currentFrame < unit.fightFrameCount && unit.fightFrameCount != 1)
+            {
+                unit.currentFrame++;
+            }
+            else
+            {
+                unit.currentFrame = 0;
+            }
             unit.attackCooldown -= 0.1;
         }
     } else if (Math.abs(unit.x - castle.x) < unit.range + unit.width / 3) {
@@ -54,6 +64,15 @@ function updateUnit(unit, allies, enemies, castle, ggold, exp) {
                 gameOverMessage.style.display = 'block';
             }
         } else {
+            unit.isFighting = true;
+            if(unit.currentFrame < 40)
+            {
+                unit.currentFrame++;
+            }
+            else
+            {
+                unit.currentFrame = 0;
+            }
             unit.attackCooldown -= 0.1;
         }
     } else {
@@ -69,6 +88,15 @@ function updateUnit(unit, allies, enemies, castle, ggold, exp) {
         // Check if there is room to move forward
         if (!allyInFront && !enemyInFront) {
             unit.x += unit.speed;
+            if(unit.currentFrame < unit.walkFrameCount && unit.walkFrameCount != 1)
+            {
+                unit.currentFrame+=1;
+                
+            }
+            else
+            {
+                unit.currentFrame = 0;
+            }
         }
     }
     if(unit.unitType == "ranged" && nearestEnemy.enemy && nearestEnemy.distance < unit.range)
@@ -192,12 +220,12 @@ function attackEnemy(unit, nearestEnemy, targets, gold, experience) {
 
 
 
-function updateDefender(defender, enemies) {
+function updateDefender(defender, enemiesArray, castle) {
     if (defender.attackCooldown <= 0) {
         var nearestEnemy = null;
         var nearestDistance = Infinity;
-        for (var i = 0; i < enemies.length; i++) {
-            var enemy = enemies[i];
+        for (var i = 0; i < enemiesArray.length; i++) {
+            var enemy = enemiesArray[i];
             var distance = Math.abs(defender.x - enemy.x);
             if (distance < nearestDistance && distance <= defender.range) {
                 nearestEnemy = enemy;
@@ -205,39 +233,60 @@ function updateDefender(defender, enemies) {
             }
         }
         if (nearestEnemy) {
-            bullets.push(createBullet(defender.x + defender.width+10, defender.y-8 + defender.height / 2, nearestEnemy));
-            console.log("Bulletet küld a defender");
+            if(enemiesArray===enemies)
+                bullets.push(createBullet(defender.x + defender.width+10, defender.y-8 + defender.height / 2, nearestEnemy));
+            else
+                bullets.push(createBullet(defender.x - defender.width, defender.y+8 - defender.height / 2, nearestEnemy));
             // Ensure the attackSpeed is greater than 0 to avoid division by zero.
             defender.attackCooldown = (defender.attackSpeed > 0) ? (60 / defender.attackSpeed) : 0;
+
+            // Az egység harcol, játszuk le a harci animációt.
+            defender.isFighting = true;
+            playAttackAnimation(defender);
+        }
+        else {
+            // Ha nincs ellenfél, az egység nem harcol.
+            defender.isFighting = false;
         }
     } else {
         defender.attackCooldown--;
+    }
+}
+function playAttackAnimation(defender) {
+    if (defender.currentFrame < 0) {
+        defender.currentFrame++;
+    } else {
+        defender.currentFrame = 0;
     }
 }
 
 
 function updateBullet(bullet) {
     // Ellenőrzi, hogy a célpont még létezik-e
-    if (enemies.includes(bullet.target)) {
-        var dx = bullet.target.x - bullet.x;
+    if (enemies.includes(bullet.target) || units.includes(bullet.target)) {
+        var dx = bullet.x - bullet.target.x;
         var dy = bullet.target.y - bullet.y;
         var distance = Math.sqrt(dx * dx + dy * dy);
         if (distance > 0) {
-            bullet.x += dx / distance * 3;
+            bullet.x -= dx / distance * 3;
             bullet.y += dy / distance * 3;
         }
         if (Math.abs(bullet.x - bullet.target.x) < 1 && Math.abs(bullet.y - bullet.target.y) < 1) {
             bullet.target.hp -= 10;
             if (bullet.target.hp <= 0) {
                 var index = enemies.indexOf(bullet.target);
-                gold+=Math.floor(bullet.target.cost*1.3);
-                experience+=Math.floor(bullet.target.cost*0.7);
-                enemyGold+=Math.floor(bullet.target.cost*1.3);
                 if (index != -1) {
                     enemies.splice(index, 1);
                 }
+                index = units.indexOf(bullet.target);
+                if (index != -1) {
+                    units.splice(index, 1);
+                }
+                gold += Math.floor(bullet.target.cost * 1.3);
+                experience += Math.floor(bullet.target.cost * 0.7);
+                enemyGold += Math.floor(bullet.target.cost * 1.3);
             }
-            var index = bullets.indexOf(bullet);
+            index = bullets.indexOf(bullet);
             if (index != -1) {
                 bullets.splice(index, 1);
                 console.log("bullet megszűnik");

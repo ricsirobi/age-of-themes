@@ -61,6 +61,56 @@ var enemyCastle = {
     color: 'red',
 };
 
+var imageCache = {};
+
+function loadAllImages() {
+    var images = {
+        "Clubman_attack": "img/zombie_attack_sprite.png",
+        "Slinger_attack": "img/sprite/archer_zombie_walk.png",
+        "Dino Rider_attack": "img/sprite/big_zombie_damage.png",
+
+        "Creeper Sapper_attack":"img/creeper.png",
+        "Ender Knight_attack":"img/enderman.png",
+        "Iron Golem_attack":"img/irongolem.png",
+        "Mario_attack":"img/mario.png",
+        "Yoshi_attack":"img/yoshi.png",
+        "Donkey Kong_attack":"img/donkeykong.png",
+        "Jedi Knight_attack":"img/jedi.png",
+        "Stormtrooper_attack":"img/stormTrooper.png",
+        "Darth Vader_attack":"img/darthvader.png",
+
+
+        "Clubman_walk": "img/zombie_walk_sprite.png",
+        "Slinger_walk": "img/sprite/archer_zombie_walk.png",
+        "Dino Rider_walk": "img/sprite/big_zombie_walk.png",
+        "Creeper Sapper_walk":"img/creeper.png",
+
+        "Ender Knight_walk":"img/enderman.png",
+        "Iron Golem_walk":"img/irongolem.png",
+        "Mario_walk":"img/mario.png",
+        "Yoshi_walk":"img/yoshi.png",
+        "Donkey Kong_walk":"img/donkeykong.png",
+        "Jedi Knight_walk":"img/jedi.png",
+        "Stormtrooper_walk":"img/stormTrooper.png",
+        "Darth Vader_walk":"img/darthvader.png",
+    };
+
+    for (var key in images) {
+        var img = new Image();
+        img.src = images[key];
+        imageCache[key] = img;
+    }
+}
+
+window.onload = loadAllImages;
+
+
+function getImage(imageType, unitName) {
+    var key = unitName + "_" + imageType;
+    return imageCache[key] || new Image();  // Returns the image from cache or a new empty image if not found.
+}
+
+
 var sendButtons = [
     // Age 1 units
     {
@@ -69,13 +119,21 @@ var sendButtons = [
         color: 'green',
         speed: 0.5, 
         hp: 140, 
-        damage: 46, 
-        attackspeed: 30, 
+        damage: 46/5, 
+        attackspeed: 30/5, 
         requiredAge: 1, 
         queueTime: 200, 
         name: "Clubman",
         width: 50, 
         height: 50,
+        walkFrameCount: 81, // A sprite frame-ek száma (ha más, akkor változtasd meg)
+        fightFrameCount: 41,
+        currentFrame: 0, // A jelenlegi frame indexe
+        walkSpriteWidth: 480,//6, // A sprite teljes szélessége
+        walkSpriteHeight: 360, // A sprite teljes magassága
+        fightSpriteWidth: 103, // A sprite teljes szélessége
+        fightSpriteHeight: 129, // A sprite teljes magassága
+   
     },
     {
         element: document.getElementById('sendSlingerButton'),
@@ -85,17 +143,25 @@ var sendButtons = [
         hp: 100,
         damage: 30,
         attackspeed: 20,
-        attackCooldown: 0,
+        attackCooldown: 10,
         requiredAge: 1,
         range: 100,
         rangeDamage: 50,
         rangeAttackspeed: 10,
-        rangeAttackCooldown: 0,
+        rangeAttackCooldown: 10,
         unitType: "ranged",
         queueTime: 300,
         name: "Slinger",
-        width: 50, 
-        height: 50,
+        width: 60*1.5, 
+        height: 60*1.5,
+
+        walkFrameCount: 90, // A sprite frame-ek száma (ha más, akkor változtasd meg)
+        fightFrameCount: 41,
+        currentFrame: 0, // A jelenlegi frame indexe
+        walkSpriteWidth: 200,//6, // A sprite teljes szélessége
+        walkSpriteHeight: 200, // A sprite teljes magassága
+        fightSpriteWidth: 103, // A sprite teljes szélessége
+        fightSpriteHeight: 129, // A sprite teljes magassága
     },
     {
         element: document.getElementById('sendDinoRiderButton'),
@@ -111,7 +177,15 @@ var sendButtons = [
         queueTime: 600,
         unitType: "meele",
         width: 100, 
-        height: 130,
+        height: 110,
+
+        walkFrameCount: 71, // A sprite frame-ek száma (ha más, akkor változtasd meg)
+        fightFrameCount: 120,
+        currentFrame: 0, // A jelenlegi frame indexe
+        walkSpriteWidth: 205,//6, // A sprite teljes szélessége
+        walkSpriteHeight: 250, // A sprite teljes magassága
+        fightSpriteWidth: 555, // A sprite teljes szélessége
+        fightSpriteHeight: 744, // A sprite teljes magassága
     },
     // Age 2 units
     {
@@ -128,6 +202,14 @@ var sendButtons = [
         queueTime: 200,
         width: 50, 
         height: 50,
+
+        walkFrameCount: 1, // A sprite frame-ek száma (ha más, akkor változtasd meg)
+        fightFrameCount:1,
+        currentFrame: 0, // A jelenlegi frame indexe
+        walkSpriteWidth:530,//6, // A sprite teljes szélessége
+        walkSpriteHeight: 1024, // A sprite teljes magassága
+        fightSpriteWidth: 530, // A sprite teljes szélessége
+        fightSpriteHeight: 1024, // A sprite teljes magassága
     },
     {
         element: document.getElementById('sendEnderKnightButton'),
@@ -143,6 +225,15 @@ var sendButtons = [
         queueTime: 350,
         width: 60, 
         height: 60,
+
+        walkFrameCount: 1, // A sprite frame-ek száma (ha más, akkor változtasd meg)
+        fightFrameCount:1,
+        currentFrame: 0, // A jelenlegi frame indexe
+        walkSpriteWidth:374,//6, // A sprite teljes szélessége
+        walkSpriteHeight: 761, // A sprite teljes magassága
+        fightSpriteWidth: 374, // A sprite teljes szélessége
+        fightSpriteHeight: 761, // A sprite teljes magassága
+
     },
     {
         element: document.getElementById('sendIronGolemButton'),
@@ -158,6 +249,14 @@ var sendButtons = [
         queueTime: 600,
         width: 130, 
         height: 130,
+
+        walkFrameCount: 1, // A sprite frame-ek száma (ha más, akkor változtasd meg)
+        fightFrameCount:1,
+        currentFrame: 0, // A jelenlegi frame indexe
+        walkSpriteWidth:781,//6, // A sprite teljes szélessége
+        walkSpriteHeight: 902, // A sprite teljes magassága
+        fightSpriteWidth: 781, // A sprite teljes szélessége
+        fightSpriteHeight: 902, // A sprite teljes magassága
     },
     // Age 3 units
     {
@@ -174,6 +273,14 @@ var sendButtons = [
         queueTime: 200,
         width: 40, 
         height: 40,
+
+        walkFrameCount: 1, // A sprite frame-ek száma (ha más, akkor változtasd meg)
+        fightFrameCount:1,
+        currentFrame: 0, // A jelenlegi frame indexe
+        walkSpriteWidth:2400,//6, // A sprite teljes szélessége
+        walkSpriteHeight: 2597, // A sprite teljes magassága
+        fightSpriteWidth: 2400, // A sprite teljes szélessége
+        fightSpriteHeight: 2597, // A sprite teljes magassága
     },
     {
         element: document.getElementById('sendYoshiButton'), 
@@ -189,6 +296,14 @@ var sendButtons = [
         queueTime: 350,
         width: 50, 
         height: 50,
+
+        walkFrameCount: 1, // A sprite frame-ek száma (ha más, akkor változtasd meg)
+        fightFrameCount:1,
+        currentFrame: 0, // A jelenlegi frame indexe
+        walkSpriteWidth:1551,//6, // A sprite teljes szélessége
+        walkSpriteHeight: 2094, // A sprite teljes magassága
+        fightSpriteWidth: 1551, // A sprite teljes szélessége
+        fightSpriteHeight: 2094, // A sprite teljes magassága
     },
     {
         element: document.getElementById('sendDonkeyKongButton'), 
@@ -204,6 +319,14 @@ var sendButtons = [
         queueTime: 750,
         width: 100, 
         height: 100,
+
+        walkFrameCount: 1, // A sprite frame-ek száma (ha más, akkor változtasd meg)
+        fightFrameCount:1,
+        currentFrame: 0, // A jelenlegi frame indexe
+        walkSpriteWidth:496,//6, // A sprite teljes szélessége
+        walkSpriteHeight: 591, // A sprite teljes magassága
+        fightSpriteWidth: 496, // A sprite teljes szélessége
+        fightSpriteHeight: 591, // A sprite teljes magassága
     },
     // Age 4 units
     {
@@ -220,6 +343,14 @@ var sendButtons = [
         queueTime: 200,
         width: 70, 
         height: 70,
+
+        walkFrameCount: 1, // A sprite frame-ek száma (ha más, akkor változtasd meg)
+        fightFrameCount:1,
+        currentFrame: 0, // A jelenlegi frame indexe
+        walkSpriteWidth:420,//6, // A sprite teljes szélessége
+        walkSpriteHeight: 939, // A sprite teljes magassága
+        fightSpriteWidth: 420, // A sprite teljes szélessége
+        fightSpriteHeight: 939, // A sprite teljes magassága
     },
     {
         element: document.getElementById('sendStormtrooperButton'), 
@@ -235,6 +366,14 @@ var sendButtons = [
         queueTime: 620,
         width: 35, 
         height: 35,
+
+        walkFrameCount: 1, // A sprite frame-ek száma (ha más, akkor változtasd meg)
+        fightFrameCount:1,
+        currentFrame: 0, // A jelenlegi frame indexe
+        walkSpriteWidth:664,//6, // A sprite teljes szélessége
+        walkSpriteHeight: 1001, // A sprite teljes magassága
+        fightSpriteWidth: 664, // A sprite teljes szélessége
+        fightSpriteHeight: 1001, // A sprite teljes magassága
     },
     {
         element: document.getElementById('sendDarthVaderButton'), 
@@ -250,12 +389,28 @@ var sendButtons = [
         queueTime: 620,
         width: 100, 
         height: 100,
+
+        walkFrameCount: 1, // A sprite frame-ek száma (ha más, akkor változtasd meg)
+        fightFrameCount:1,
+        currentFrame: 0, // A jelenlegi frame indexe
+        walkSpriteWidth:654,//6, // A sprite teljes szélessége
+        walkSpriteHeight: 763, // A sprite teljes magassága
+        fightSpriteWidth: 654, // A sprite teljes szélessége
+        fightSpriteHeight: 763, // A sprite teljes magassága
     },
 
 ];
 
+
+//sendButtons[1].image.src = 'img/zombie_walk_sprite.png';
+//sendButtons[1].attackImage.src = 'img/zombie_attack_sprite.png';
+
+//sendButtons[2].image.src = 'img/zombie_walk_sprite.png';
+//sendButtons[2].attackImage.src = 'img/zombie_attack_sprite.png';
+
+
 var buildButtons = [
-    { element: document.getElementById('buildBigTowerButton'), cost: 400, width: 50, height: 50, range: 300, damage: 500, attackSpeed: 10, requiredAge: 1 }
+    { element: document.getElementById('buildBigTowerButton'), cost: 400, width: 50, height: 50, range: 450, damage: 1000, attackSpeed: 30, requiredAge: 1 }
 ];
 
 var ages = [
@@ -291,24 +446,9 @@ sendButtons.forEach(function (button) {
         if (gold >= button.cost && unitQueue.length < maxUnitQueueSize ) {
             gold -= button.cost;
             console.log("Player queue-ba tette: " + button.name + "hp: " + button.hp + " damage: " + button.damage);
-            var modifiedRangedAttackSpeed = button.rangeAttackspeed?button.rangeAttackspeed-1:0;
+            var modifiedRangedAttackSpeed = button.rangeAttackspeed?button.rangeAttackspeed-(1/100):0;
             unitQueue.push({
-                unit: createUnit(castle.x , 
-                    button.name, 
-                    button.color, 
-                    button.speed,
-                     button.hp, 
-                     button.damage,
-                      button.attackspeed-2, 
-                      button.requiredAge, 
-                      button.cost, 
-                      button.rangeDamage, 
-                      button.rangeAttackspeed, 
-                      button.range, button.name, 
-                      button.unitType, 
-                      button.width, 
-                      button.height,
-                      ),
+                unit: createUnit(button, castle.x ),
                 queueTime: button.queueTime
             });
         }
@@ -332,7 +472,7 @@ upgradeTowerButton.addEventListener('click', function () {
     if (gold >= 1000 * maxDefenderTowers && maxDefenderTowers < maxDefenderTowerCount) {
         gold -= 1000 * maxDefenderTowers;
         maxDefenderTowers++;
-        maxDefenderTowersDisplay.innerText = 'Max Defender Towers: ' + maxDefenderTowers;
+        maxDefenderTowersDisplay.innerText =   defenders.length+" / "+maxDefenderTowers;
         upgradeTowerPriceDisplay.innerText =  1000 * maxDefenderTowers;
     }
     else {
@@ -372,14 +512,14 @@ function openDraw()
 drawingCanvas.width = parseInt(computedStyle.getPropertyValue('width'), 10);
 drawingCanvas.height = parseInt(computedStyle.getPropertyValue('height'), 10);
 
-    drawingCanvas.color = "white";
+    drawingCanvas.color = "rgba(255, 255, 0, 0.5)";
+    
     drawingDiv.style.display = "block";
     drawingCanvas.id = "drawingCanvas";
-    drawingCanvas.style.backgroundColor = "white";
     drawingCanvas.width = window.innerWidth;
     drawingCanvas.height = window.innerHeight;
     drawingDiv.appendChild(drawingCanvas);
-
+    drawingCanvas.style.position="fixed";
     var ctx = drawingCanvas.getContext('2d');
     var drawing = false;
     
@@ -394,7 +534,7 @@ drawingCanvas.height = parseInt(computedStyle.getPropertyValue('height'), 10);
 
     drawingCanvas.addEventListener('mousemove', function(e) {
         if (drawing === false) return;
-        ctx.lineWidth = 10;
+        ctx.lineWidth = brushSize.value;
         ctx.lineCap = 'round';
         
         ctx.strokeStyle = colorPicker.value;
@@ -404,6 +544,7 @@ drawingCanvas.height = parseInt(computedStyle.getPropertyValue('height'), 10);
     
         // Calculate the zoom level
         var zoomLevel = window.devicePixelRatio;
+        console.log(zoomLevel);
     
         // Calculate the mouse position relative to the canvas, taking into account the zoom level
         var x = (e.clientX - rect.left) / zoomLevel;
@@ -416,23 +557,59 @@ drawingCanvas.height = parseInt(computedStyle.getPropertyValue('height'), 10);
     });
     var colorPicker = document.createElement("input");
     colorPicker.type="color";
+    
+    colorPicker.id="drawingColorPicker";
+
+    var brushSize = document.createElement("input");
+    brushSize.type="number";
+    brushSize.id = "brushSize";
+    brushSize.value = "10";
+
+
     var saveButton = document.createElement('button');
+    saveButton.id="drawingColorSaveButton";
     saveButton.textContent = 'Mentés';
+    saveButton.style.bottom="1%";
     
     drawingDiv.appendChild(colorPicker);
+    drawingDiv.appendChild(brushSize);
     drawingDiv.appendChild(saveButton);
-    
+
     saveButton.addEventListener('click', function() {
         var dataUrl = drawingCanvas.toDataURL('image/png');
         
         var playerUnitImage = new Image();
         playerUnitImage.src = dataUrl;
-        
-        units[units.length] =  playerUnit = createUnit(0, "Player Unit", "blue", 100, calculateArea(drawingCanvas)/1000, 10, 1, currentAge ,0, 0, 0, 0, 0, "melee", 75, 75);
+        var tempButton = 
+
+        {
+        element: null, 
+        cost: null, 
+        color: 'gold',
+        speed: 0.5, 
+        hp: calculateArea(drawingCanvas)/1000, 
+        damage: 10, 
+        attackspeed: 1, 
+        requiredAge: currentAge, 
+        queueTime: 0, 
+        name: "Player Unit",
+        width: 75, 
+        height: 75,
+        walkFrameCount: 1, // A sprite frame-ek száma (ha más, akkor változtasd meg)
+        fightFrameCount: 1,
+        currentFrame: 0, // A jelenlegi frame indexe
+        walkSpriteWidth: drawingCanvas.width, // A sprite teljes szélessége
+        walkSpriteHeight: drawingCanvas.height, // A sprite teljes magassága
+        fightSpriteWidth: drawingCanvas.width, // A sprite teljes szélessége
+        fightSpriteHeight: drawingCanvas.height, // A sprite teljes magassága
+        }
+
+        units[units.length] =  playerUnit = createUnit(tempButton,0);
 
         units[units.length-1].image = playerUnitImage;
         
         drawingDiv.removeChild(colorPicker);
+        drawingDiv.removeChild(brushSize);
         drawingDiv.removeChild(drawingCanvas);
         drawingDiv.removeChild(saveButton);
         drawingDiv.style.display = "none";
@@ -478,6 +655,9 @@ function calculateArea(canvas) {
   
   
 
+  window.addEventListener('dbltouch', function(e){
+    e.preventDefault();
+});
 
 
 
@@ -489,11 +669,13 @@ if (isMobileDevice()) {
     window.addEventListener("orientationchange", function() {
         if (window.orientation === 0 || window.orientation === 180) {
             document.getElementById("checkMobileScreen").style.display="block";
+            pauseGame();
             return;
         } else if (window.orientation === 90 || window.orientation === -90) {
             // Landscape módban vagyunk
             // Itt végrehajthatod az elforgatásra vonatkozó műveleteket
             document.getElementById("checkMobileScreen").style.display="none";
+            
         }
     });
 } else {
@@ -517,37 +699,50 @@ function checkMobileScreen()
 }
 
 
-function createUnit(x, name, color, speed, hp, damage, attackspeed, requiredAge, cost, rangeDamage = 0, rangeAttackspeed = 0, range = 30, rangeAttackCooldown = 0, unitType = "meele", width, height) {
-    if (requiredAge != currentAge) {
+function createUnit(button, x) {
+    if (button.requiredAge != currentAge) {
         console.log("This unit is not available in the current age.");
         //return;
     }
+    
     return {
         x: x,
         y: 350,
-        width: width || 50,
-        height: height || 50,
-        color: color,
+        width: button.width || 50,
+        height: button.height || 50,
+        color: button.color,
         speed: x<500?0.5:-0.5, //speed
-        hp: hp,
-        maxHp: hp,
-        range: range || 30,
-        damage: damage,
-        attackCooldown: rangeAttackspeed || attackspeed,
-        attackspeed: attackspeed,
-        requiredAge: requiredAge,
-        cost: cost,
-        rangeDamage: rangeDamage || 0,
-        rangeAttackspeed: rangeAttackspeed || 0,
-        rangeAttackCooldown: rangeAttackCooldown || 0,
-        unitType: unitType || "melee",
-        name: name,
+        hp: button.hp,
+        maxHp: button.hp,
+        range: button.range || 30,
+        damage: button.damage,
+        attackCooldown: button.rangeAttackspeed || button.attackspeed,
+        attackspeed: button.attackspeed,
+        requiredAge: button.requiredAge,
+        cost: button.cost,
+        rangeDamage: button.rangeDamage || 0,
+        rangeAttackspeed: button.rangeAttackspeed || 0,
+        rangeAttackCooldown: button.rangeAttackCooldown || 0,
+        unitType: button.unitType || "melee",
+        name: button.name,
         target: null,
         inMeele: false,
-        image: null,
-
+        isFighting:false,
+        currentFrame : 0,
+        image: getImage("walk",button.name), 
+        attackImage: getImage("attack",button.name), 
+        
+        walkFrameCount: button.walkFrameCount || 0, // A sprite frame-ek száma (ha más, akkor változtasd meg)
+        fightFrameCount: button.fightFrameCount || 0,
+        currentFrame: button.currentFrame || 0, // A jelenlegi frame indexe
+        walkSpriteWidth: button.walkSpriteHeight ||0, // A sprite teljes szélessége
+        walkSpriteHeight: button.walkSpriteHeight||0, // A sprite teljes magassága
+        fightSpriteWidth: button.fightSpriteWidth||0, // A sprite teljes szélessége
+        fightSpriteHeight: button.fightSpriteHeight||0, // A sprite teljes magassága
     };
 }
+
+
 
 function createDefender(x, y, width, height, range, damage, attackSpeed, castle=castle) {
     return {
@@ -587,9 +782,10 @@ function findAffordableTowers() {
     return null;
 }
 
-
+/*
 function checkBulletCollision(bullet) {
     for (var i = 0; i < enemies.length; i++) {
+        //console.table(bullet); pauseGame();
         var enemy = enemies[i];
         if (
             bullet.x < enemy.x + enemy.width &&
@@ -602,7 +798,7 @@ function checkBulletCollision(bullet) {
     }
     return null;
 }
-
+*/
 function updateButtonVisibility() {
     var ageDivs = ['age1unitButtons', 'age2unitButtons', 'age3unitButtons', 'age4unitButtons'];
 
@@ -797,22 +993,7 @@ function gameLoop() {
           enemyGold -= affordableUnit.cost;
           enemySpawnCooldown = 2;
           //console.log("Enemy spawn: " + affordableUnit.name + " hp: " + affordableUnit.hp + " damage: " + affordableUnit.damage);
-          enemies.push(createUnit(1050+enemies.length,
-             affordableUnit.name, 
-             affordableUnit.color,
-              affordableUnit.speed, 
-              affordableUnit.hp, 
-              affordableUnit.damage,
-               affordableUnit.attackspeed, 
-               affordableUnit.requiredAge,
-                affordableUnit.cost, 
-                affordableUnit.rangeDamage,
-                 affordableUnit.rangeAttackspeed, 
-                 affordableUnit.range, 
-                 affordableUnit.name,                
-                 affordableUnit.unitType, 
-                 affordableUnit.width, 
-                 affordableUnit.height));
+          enemies.push(createUnit(affordableUnit, 1050+enemies.length));
         }
       }
       
@@ -823,7 +1004,7 @@ function gameLoop() {
         if (affordableTower && enemyGold >= affordableTower.cost && enemyDefenders.length < enemyMaxDefenderTowers) {
             enemyGold -= affordableTower.cost;
             var towerYPosition = enemyCastle.y + enemyCastle.height / 2 + (defenders.filter(d => d.isEnemy).length * defenderTowerSpacing);
-            enemyDefenders.push(createDefender(enemyCastle.x - 20, towerYPosition, affordableTower.width, affordableTower.height, affordableTower.range, affordableTower.damage, affordableTower.attackSpeed, enemyCastle)); // Assuming the last parameter indicates whether the tower is for the enemy
+            enemyDefenders.push(createDefender(enemyCastle.x - enemyCastle.width - 20, towerYPosition, affordableTower.width, affordableTower.height, affordableTower.range, affordableTower.damage, affordableTower.attackSpeed, enemyCastle)); 
         }
     }
 
